@@ -1,5 +1,8 @@
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  // D1 需要 driver adapters；Prisma 5.12+ 起支援 D1，本專案的 5.21.1 已滿足，
+  // 因此不需要升級 Prisma 主版本。詳見 docs/D1.md。
+  previewFeatures = ["driverAdapters"]
 }
 
 datasource db {

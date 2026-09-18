@@ -1,0 +1,11 @@
+# 複製為 .dev.vars 後使用（.dev.vars 已加入 .gitignore，請勿提交）。
+# 這個檔案只影響 `wrangler dev` 的本機開發，不會進入 production。
+
+# 讓 wrangler dev 把尚未遷移的 /api/*、/uploads/* 轉發到本機仍在運行的 Express backend，
+# 使 `wrangler dev` 能完整驗證整個站台（首頁會真的抓到資料、頭像會正常顯示）。
+#
+# 留空或整個檔案不建立也可以 —— 此時：
+#   /api/health  仍由 Worker 原生提供，回傳 { "status": "ok" }
+#   其他 /api/*  回傳 501（明確告知尚未遷移，而非靜默失敗）
+#   /uploads/*   回傳 404
+API_PROXY_ORIGIN="http://localhost:3001"

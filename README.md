@@ -99,7 +99,114 @@ cd frontend && npm run test    # vitest + @vue/test-utils：語言切換、路�
 
 其他品質檢查（`backend/`、`frontend/` 皆適用）：`npm run typecheck`、`npm run lint`、`npm run build`。
 
-## 五、正式環境部署建議
+## 五、Cloudflare Workers / Static Assets（本機開發）
+
+frontend 的 production build 由 **Cloudflare Static Assets** 提供，`/api/*` 由 **Worker** 處理，兩者**同源（same-origin）**。因此 `VITE_API_BASE_URL` 維持留空即可 —— production bundle 只會發出 `/api/profile` 這類相對路徑請求，不含任何 `localhost`。
+
+> 目前階段只建立「靜態託管 + Worker 骨架」。API 與資料庫尚未遷移，Express + Prisma + SQLite 完全不受影響，仍可照 §一 的方式獨立運行。完整遷移規劃見 `CLOUDFLARE_MIGRATION_PLAN.md`。
+
+### 1. 相關檔案
+
+| 檔案 | 用途 |
+| --- | --- |
+| `wrangler.jsonc` | Worker 與 Static Assets 設定（repo 根目錄） |
+| `worker/index.ts` | Worker 進入點：原生提供 `/api/health`，並可選擇性轉發其餘 `/api/*`、`/uploads/*` |
+| `worker/tsconfig.json` | Worker 專用的 TypeScript 設定（與 `backend/`、`frontend/` 互不干擾） |
+| `package.json`（根目錄） | 只放 wrangler 與部署用 scripts；`backend/`、`frontend/` 仍是各自獨立的 npm 專案 |
+| `.dev.vars.example` | 本機開發變數範本，複製為 `.dev.vars` 後使用 |
+
+### 2. 首次設定
+
+```bash
+# 於 repo 根目錄
+npm install                       # 安裝 wrangler 與 @cloudflare/workers-types
+cp .dev.vars.example .dev.vars    # Windows PowerShell：copy .dev.vars.example .dev.vars
+```
+
+> **版本對齊注意**：`@cloudflare/workers-types` 的主版號與 `wrangler` **並不同步** ——
+> `wrangler` 目前是 4.x，但 workers-types 已進到 5.x（日期式版號），且 wrangler 會
+> 以 peer dependency 要求對應的 5.x。若看到：
+>
+> ```
+> npm error ERESOLVE could not resolve
+> npm error peerOptional @cloudflare/workers-types@"^5...." from wrangler@4....
+> ```
+>
+> 表示根目錄的 `@cloudflare/workers-types` 版本範圍落後了，把它調到 wrangler 要求的
+> 主版號即可（**不要**用 `--force` 或 `--legacy-peer-deps` 硬吞）。
+>
+> `backend/` 的 `@cloudflare/workers-types` 是**獨立的 npm 專案**，不受此限制
+> （該處沒有安裝 wrangler，因此不會有 peer 衝突）。
+
+### 3. 啟動
+
+#### 模式 A：完整驗證（建議）
+
+開兩個終端機。Worker 會把尚未遷移的 `/api/*`、`/uploads/*` 轉發到 Express backend，因此首頁能真的取得資料、頭像也能正常顯示。
+
+```bash
+# 終端機 1 —— 照舊啟動 Express backend
+cd backend && npm run dev         # http://localhost:3001
+
+# 終端機 2 —— 建置前端並啟動 Worker
+npm run cf:dev                    # http://localhost:8787
+```
+
+#### 模式 B：只驗證靜態站台
+
+不啟動 backend，也不建立 `.dev.vars`：
+
+```bash
+npm run cf:dev
+```
+
+此時 `/api/health` 仍正常回傳 `{"status":"ok"}`，其餘 `/api/*` 回傳 **501**（明確告知尚未遷移），`/uploads/*` 回傳 404。首頁會停在錯誤狀態，屬預期行為。
+
+> `npm run cf:dev` 會先執行 `npm run build` 重新產生 `frontend/dist`。若前端沒有改動、想省下建置時間，可改用 `npm run cf:dev:quick`。
+
+### 4. 驗收清單
+
+| 項目 | 做法 | 預期結果 |
+| --- | --- | --- |
+| frontend production build | `npm run build` | 產生 `frontend/dist/`（`index.html`、`assets/`、`favicon.svg`） |
+| wrangler 設定可驗證 | `npm run cf:check` | 完成 bundle 並印出設定摘要，**不會上傳**（`--dry-run`） |
+| Worker 型別檢查 | `npm run cf:typecheck` | 無錯誤 |
+| `wrangler dev` 可啟動 | `npm run cf:dev` | 監聽 `http://localhost:8787` |
+| `/` 正常 | 瀏覽器開啟 `http://localhost:8787/` | 首頁正常渲染 |
+| SPA 直接導覽不 404 | 開啟 `http://localhost:8787/admin/login` 後**按 F5 重新整理** | 回傳 200 + `index.html`，登入頁正常顯示（不是 404） |
+| `/api` health endpoint | `curl http://localhost:8787/api/health` | `{"status":"ok"}` |
+| static assets | `curl -I http://localhost:8787/favicon.svg` | `200`，`content-type: image/svg+xml` |
+| API 未被 SPA fallback 吞掉 | `curl -i http://localhost:8787/api/does-not-exist` | 回傳 **JSON**（501 或 404），**不是** HTML |
+| production build 不依賴 localhost | `grep -r localhost frontend/dist/assets/` | **無任何結果** |
+
+### 5. 指令一覽（於 repo 根目錄執行）
+
+| 指令 | 用途 |
+| --- | --- |
+| `npm run build` | 建置 frontend production bundle（等同 `frontend/` 的 `npm run build`） |
+| `npm run cf:dev` | 建置前端後啟動 `wrangler dev` |
+| `npm run cf:dev:quick` | 直接啟動 `wrangler dev`，不重新建置 |
+| `npm run cf:check` | `wrangler deploy --dry-run`，驗證設定與 bundle，不部署 |
+| `npm run cf:typecheck` | 檢查 `worker/` 的 TypeScript 型別 |
+| `npm run cf:types` | 由 `wrangler.jsonc` 產生 binding 的型別定義 |
+| `npm run cf:deploy` | 實際部署（**目前階段尚不應執行**） |
+
+### 6. 設定重點
+
+**`assets.directory` 指向 `./frontend/dist`** —— 這是 `frontend/vite.config.ts` 的實際輸出目錄（未覆寫 `build.outDir`，即 Vite 預設值）。
+
+**`not_found_handling: "single-page-application"`** —— Vue Router 使用 `createWebHistory`（history mode），未命中靜態檔的路徑必須回傳 `index.html` 交由 client-side router 解析。這是 Cloudflare Static Assets 官方支援的設定，回應為 200 + `index.html`，**不需要自行撰寫 fallback 路由**。
+
+**`run_worker_first: ["/api/*", "/uploads/*"]`** —— 這是整份設定最關鍵的一行。若不排除這兩組前綴，上面的 SPA fallback 會把 `/api/*` 的 404、401 一併吞掉並回傳 200 + `index.html`（HTML），前端的 `res.json()` 隨即解析失敗 —— 屬於**靜默的 API contract 破壞**，也是 Static Assets + SPA 組合最常見的陷阱。`/uploads/*` 同理：否則圖片請求會拿到 HTML 而非圖片。
+
+### 7. 目前尚未涵蓋
+
+- **API 未遷移**：`/api/*`（除 `health` 外）仍由 Express + Prisma + SQLite 提供，Worker 在本機僅作轉發。
+- **未建立 D1 / R2**：`wrangler.jsonc` 中相關 binding 以註解保留，尚未建立任何 Cloudflare 資源。
+- **未部署、未設定 DNS**：`npm run cf:deploy` 目前不應執行。
+- **`/projects`、`/about` 不是路由**：它們是首頁的錨點（`#projects`、`#about`，見 `frontend/src/components/AppNav.vue`）。router 實際只註冊了 `/`、`/admin/login`、`/admin` 三條路由，且**沒有 catch-all**。因此直接開啟 `/projects` 會得到 200 + `index.html`（不是 404），但 router 找不到對應路由 → 畫面空白。若需要讓未知路徑導回首頁，須在 `frontend/src/router/index.ts` 加入 catch-all 路由，屬前端行為調整。
+
+## 六、正式環境部署建議
 
 本專案僅提供部署建議，未包含實際部署腳本執行。
 
@@ -129,7 +236,7 @@ cd frontend && npm run test    # vitest + @vue/test-utils：語言切換、路�
 - `uploads/` 目錄建議掛載持久化磁碟或改接雲端物件儲存（如 GCS），避免容器重建時遺失已上傳的大頭貼
 - `JWT_SECRET`、`ADMIN_PASSWORD_HASH`、資料庫密碼等敏感值改用 Secret Manager 或部署平台的環境變數機制管理，不寫入版本控制
 
-## 六、已知環境限制
+## 七、已知環境限制
 
 - 本工作副本在 Windows 沙箱環境下，`prisma generate` 若遇到既有行程占用已產生的查詢引擎檔案，會出現 `EPERM` 重新命名錯誤；`backend/scripts/ensure-prisma-client.cjs` 已加入容錯處理（引擎檔案已存在時略過重新產生），不影響 schema 有變更時的正常產生流程。
 - 沙箱環境對 `curl`、`tasklist` 等一般系統探測指令會要求額外核准，因此瀏覽器端對後端 API 的手動探測改以 supertest／vitest 自動化測試取代，已於測試章節列出對應覆蓋範圍。

@@ -1,0 +1,28 @@
+{
+  "name": "idv-web",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Lucky idv-web — Cloudflare Workers / Static Assets 部署層（frontend 與 backend 仍為各自獨立的 npm 專案）",
+  "scripts": {
+    "build": "npm --prefix frontend run build",
+    "build:frontend": "npm --prefix frontend run build",
+    "build:backend": "npm --prefix backend run build",
+    "cf:dev": "npm run build && wrangler dev",
+    "cf:dev:quick": "wrangler dev",
+    "cf:check": "wrangler deploy --dry-run",
+    "cf:typecheck": "tsc -p worker/tsconfig.json --noEmit",
+    "cf:types": "wrangler types",
+    "cf:deploy": "npm run build && wrangler deploy",
+    "d1:migrate:local": "wrangler d1 migrations apply idv-web --local",
+    "d1:migrate:remote": "wrangler d1 migrations apply idv-web --remote",
+    "d1:seed:local": "wrangler d1 execute idv-web --local --file=backend/.generated/d1-seed.sql",
+    "d1:admin:local": "wrangler d1 execute idv-web --local --file=backend/.generated/d1-admin.sql",
+    "d1:studio:local": "wrangler d1 execute idv-web --local --command=\"SELECT name FROM sqlite_master WHERE type='table'\""
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^5",
+    "typescript": "~5.6.3",
+    "wrangler": "^4"
+  }
+}

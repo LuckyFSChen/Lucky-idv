@@ -17,3 +17,11 @@ backend/uploads/*
 # editor / os
 .DS_Store
 *.log
+
+# cloudflare
+.wrangler/
+.dev.vars
+!.dev.vars.example
+
+# D1：由腳本產生的 SQL（d1-admin.sql 內含密碼雜湊，絕不可提交）
+backend/.generated/
