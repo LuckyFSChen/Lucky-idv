@@ -1,0 +1,108 @@
+<script setup lang="ts">
+import { computed } from 'vue'
+import { uiText } from '@/i18n/ui'
+import { useLocaleStore } from '@/stores/locale'
+import type { SkillCategory } from '@/types/api'
+
+const props = defineProps<{ categories: SkillCategory[] }>()
+
+const localeStore = useLocaleStore()
+const t = computed(() => uiText[localeStore.locale].skills)
+
+function categoryName(category: SkillCategory) {
+  return localeStore.locale === 'zh' ? category.nameZh : category.nameEn
+}
+
+function skillName(skill: SkillCategory['skills'][number]) {
+  return localeStore.locale === 'zh' ? skill.nameZh : skill.nameEn
+}
+
+const categories = computed(() => props.categories)
+</script>
+
+<template>
+  <section
+    id="skills"
+    class="section section--alt skills"
+  >
+    <div class="container">
+      <div class="section-header">
+        <h2 class="section-title">
+          {{ t.title }}
+        </h2>
+        <p class="section-subtitle">
+          {{ t.subtitle }}
+        </p>
+      </div>
+
+      <div
+        v-motion-fade-visible-once
+        class="skills__grid"
+      >
+        <article
+          v-for="category in categories"
+          :key="category.id"
+          class="skills__card"
+        >
+          <h3 class="skills__card-title">
+            {{ categoryName(category) }}
+          </h3>
+          <ul class="skills__list">
+            <li
+              v-for="skill in category.skills"
+              :key="skill.id"
+            >
+              {{ skillName(skill) }}
+            </li>
+          </ul>
+        </article>
+      </div>
+    </div>
+  </section>
+</template>
+
+<style scoped>
+.skills__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 1.25rem;
+}
+
+.skills__card {
+  background: #fff;
+  border-radius: var(--radius-md);
+  padding: 1.75rem;
+  border: 1px solid var(--color-border);
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease;
+}
+
+.skills__card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-card);
+}
+
+.skills__card-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  margin-bottom: 0.9rem;
+}
+
+.skills__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.skills__list li {
+  font-size: 0.85rem;
+  padding: 0.4rem 0.8rem;
+  border-radius: 999px;
+  background: var(--color-bg-alt);
+  color: var(--color-text-secondary);
+}
+</style>

@@ -1,0 +1,229 @@
+import fs from 'node:fs'
+import path from 'node:path'
+import bcrypt from 'bcryptjs'
+import request from 'supertest'
+import { afterAll, beforeAll, describe, expect, it } from 'vitest'
+import app from '../app.js'
+import { prisma } from '../db.js'
+
+const TEST_ADMIN_EMAIL = 'test-admin-crud@example.com'
+const TEST_ADMIN_PASSWORD = 'Test-Password-456!'
+
+let token: string
+let originalProfile: Awaited<ReturnType<typeof prisma.profile.findFirst>>
+const uploadedFiles: string[] = []
+
+beforeAll(async () => {
+  const passwordHash = await bcrypt.hash(TEST_ADMIN_PASSWORD, 10)
+  await prisma.adminUser.upsert({
+    where: { email: TEST_ADMIN_EMAIL },
+    update: { passwordHash },
+    create: { email: TEST_ADMIN_EMAIL, passwordHash },
+  })
+
+  const loginRes = await request(app)
+    .post('/api/admin/login')
+    .send({ email: TEST_ADMIN_EMAIL, password: TEST_ADMIN_PASSWORD })
+  token = loginRes.body.token as string
+
+  originalProfile = await prisma.profile.findFirst({ orderBy: { id: 'asc' } })
+})
+
+afterAll(async () => {
+  if (originalProfile) {
+    await prisma.profile.update({
+      where: { id: originalProfile.id },
+      data: {
+        displayName: originalProfile.displayName,
+        preferredName: originalProfile.preferredName,
+        titleZh: originalProfile.titleZh,
+        titleEn: originalProfile.titleEn,
+        introZh: originalProfile.introZh,
+        introEn: originalProfile.introEn,
+        avatarUrl: originalProfile.avatarUrl,
+        contactEmail: originalProfile.contactEmail,
+        contactLinks: originalProfile.contactLinks,
+      },
+    })
+  }
+  for (const filename of uploadedFiles) {
+    const filePath = path.join(process.cwd(), 'uploads', filename)
+    if (fs.existsSync(filePath)) fs.unlinkSync(filePath)
+  }
+  await prisma.adminUser.delete({ where: { email: TEST_ADMIN_EMAIL } })
+  await prisma.$disconnect()
+})
+
+describe('admin profile CRUD', () => {
+  it('updates the profile and reflects on the public API', async () => {
+    const res = await request(app)
+      .put('/api/admin/profile')
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        displayName: 'Lucky Test',
+        contactEmail: 'lucky-test@example.com',
+        contactLinks: [{ label: 'GitHub', url: 'https://github.com/example' }],
+      })
+    expect(res.status).toBe(200)
+    expect(res.body.displayName).toBe('Lucky Test')
+    expect(res.body.contactLinks).toEqual([{ label: 'GitHub', url: 'https://github.com/example' }])
+
+    const publicRes = await request(app).get('/api/profile')
+    expect(publicRes.body.displayName).toBe('Lucky Test')
+  })
+})
+
+describe('admin skill category & skill CRUD', () => {
+  it('creates, updates and deletes a skill category with a nested skill', async () => {
+    const createCategoryRes = await request(app)
+      .post('/api/admin/skill-categories')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ nameZh: '測試分類', nameEn: 'Test Category', sortOrder: 99 })
+    expect(createCategoryRes.status).toBe(201)
+    const categoryId = createCategoryRes.body.id as number
+
+    const updateCategoryRes = await request(app)
+      .put(`/api/admin/skill-categories/${categoryId}`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({ nameZh: '測試分類更新' })
+    expect(updateCategoryRes.status).toBe(200)
+    expect(updateCategoryRes.body.nameZh).toBe('測試分類更新')
+
+    const createSkillRes = await request(app)
+      .post('/api/admin/skills')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ categoryId, nameZh: '測試技能', nameEn: 'Test Skill' })
+    expect(createSkillRes.status).toBe(201)
+    const skillId = createSkillRes.body.id as number
+
+    const updateSkillRes = await request(app)
+      .put(`/api/admin/skills/${skillId}`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({ nameZh: '測試技能更新' })
+    expect(updateSkillRes.status).toBe(200)
+    expect(updateSkillRes.body.nameZh).toBe('測試技能更新')
+
+    const deleteSkillRes = await request(app)
+      .delete(`/api/admin/skills/${skillId}`)
+      .set('Authorization', `Bearer ${token}`)
+    expect(deleteSkillRes.status).toBe(204)
+
+    const deleteCategoryRes = await request(app)
+      .delete(`/api/admin/skill-categories/${categoryId}`)
+      .set('Authorization', `Bearer ${token}`)
+    expect(deleteCategoryRes.status).toBe(204)
+  })
+})
+
+describe('admin experience CRUD', () => {
+  it('creates, updates and deletes an experience entry', async () => {
+    const createRes = await request(app)
+      .post('/api/admin/experience')
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        companyZh: '測試公司',
+        companyEn: 'Test Co.',
+        roleZh: '測試工程師',
+        roleEn: 'Test Engineer',
+        startDate: '2020-01-01T00:00:00.000Z',
+        endDate: null,
+        summaryZh: '摘要',
+        summaryEn: 'Summary',
+        highlightsZh: ['重點一'],
+        highlightsEn: ['Highlight one'],
+      })
+    expect(createRes.status).toBe(201)
+    expect(createRes.body.highlightsZh).toEqual(['重點一'])
+    const id = createRes.body.id as number
+
+    const updateRes = await request(app)
+      .put(`/api/admin/experience/${id}`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({ highlightsZh: ['重點一', '重點二'] })
+    expect(updateRes.status).toBe(200)
+    expect(updateRes.body.highlightsZh).toEqual(['重點一', '重點二'])
+
+    const deleteRes = await request(app)
+      .delete(`/api/admin/experience/${id}`)
+      .set('Authorization', `Bearer ${token}`)
+    expect(deleteRes.status).toBe(204)
+  })
+})
+
+describe('admin project CRUD', () => {
+  it('creates, updates and deletes a project entry', async () => {
+    const createRes = await request(app)
+      .post('/api/admin/projects')
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        nameZh: '測試專案',
+        nameEn: 'Test Project',
+        summaryZh: '摘要',
+        summaryEn: 'Summary',
+        highlightsZh: ['特色一'],
+        highlightsEn: ['Feature one'],
+        techStack: ['Node.js'],
+      })
+    expect(createRes.status).toBe(201)
+    expect(createRes.body.techStack).toEqual(['Node.js'])
+    const id = createRes.body.id as number
+
+    const updateRes = await request(app)
+      .put(`/api/admin/projects/${id}`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({ techStack: ['Node.js', 'TypeScript'] })
+    expect(updateRes.status).toBe(200)
+    expect(updateRes.body.techStack).toEqual(['Node.js', 'TypeScript'])
+
+    const deleteRes = await request(app)
+      .delete(`/api/admin/projects/${id}`)
+      .set('Authorization', `Bearer ${token}`)
+    expect(deleteRes.status).toBe(204)
+  })
+})
+
+describe('admin avatar upload', () => {
+  it('rejects disallowed file types', async () => {
+    const res = await request(app)
+      .post('/api/admin/avatar')
+      .set('Authorization', `Bearer ${token}`)
+      .attach('avatar', Buffer.from('not an image'), { filename: 'avatar.txt', contentType: 'text/plain' })
+    expect(res.status).toBe(400)
+  })
+
+  it('rejects files larger than the configured limit', async () => {
+    const oversized = Buffer.alloc(6 * 1024 * 1024, 1)
+    const res = await request(app)
+      .post('/api/admin/avatar')
+      .set('Authorization', `Bearer ${token}`)
+      .attach('avatar', oversized, { filename: 'avatar.jpg', contentType: 'image/jpeg' })
+    expect(res.status).toBe(400)
+  })
+
+  it('accepts a valid image and updates the profile avatarUrl', async () => {
+    const res = await request(app)
+      .post('/api/admin/avatar')
+      .set('Authorization', `Bearer ${token}`)
+      .attach('avatar', Buffer.from([0xff, 0xd8, 0xff, 0xd9]), {
+        filename: 'avatar.jpg',
+        contentType: 'image/jpeg',
+      })
+    expect(res.status).toBe(200)
+    expect(typeof res.body.avatarUrl).toBe('string')
+    expect(res.body.avatarUrl).toMatch(/^\/uploads\//)
+    uploadedFiles.push(path.basename(res.body.avatarUrl as string))
+
+    const publicRes = await request(app).get('/api/profile')
+    expect(publicRes.body.avatarUrl).toBe(res.body.avatarUrl)
+  })
+
+  it('rejects avatar upload without authentication', async () => {
+    const res = await request(app)
+      .post('/api/admin/avatar')
+      .attach('avatar', Buffer.from([0xff, 0xd8, 0xff, 0xd9]), {
+        filename: 'avatar.jpg',
+        contentType: 'image/jpeg',
+      })
+    expect(res.status).toBe(401)
+  })
+})

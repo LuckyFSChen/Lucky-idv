@@ -1,0 +1,19 @@
+node_modules/
+dist/
+.env
+!.env.example
+
+# frontend
+frontend/dist/
+frontend/.vite/
+
+# backend
+backend/dist/
+backend/prisma/dev.db
+backend/prisma/dev.db-journal
+backend/uploads/*
+!backend/uploads/.gitkeep
+
+# editor / os
+.DS_Store
+*.log

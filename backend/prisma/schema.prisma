@@ -1,0 +1,88 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// 單筆個人資料（姓名、稱呼、簡介、頭像路徑、聯絡方式）
+model Profile {
+  id            Int      @id @default(autoincrement())
+  displayName   String
+  preferredName String
+  titleZh       String
+  titleEn       String
+  introZh       String
+  introEn       String
+  avatarUrl     String?
+  contactEmail  String?
+  // 聯絡連結（如 GitHub、LinkedIn），以 JSON 字串儲存（SQLite 不支援 Json 型別），格式為 [{ "label": string, "url": string }]
+  contactLinks  String?
+  updatedAt     DateTime @updatedAt
+}
+
+// 技能分類（如「後端開發」「API」...）
+model SkillCategory {
+  id        Int     @id @default(autoincrement())
+  nameZh    String
+  nameEn    String
+  sortOrder Int     @default(0)
+  skills    Skill[]
+}
+
+// 分類底下的技能項目
+model Skill {
+  id         Int           @id @default(autoincrement())
+  nameZh     String
+  nameEn     String
+  sortOrder  Int           @default(0)
+  category   SkillCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  categoryId Int
+}
+
+// 工作經歷（含任職期間、摘要與重點條列）
+model Experience {
+  id           Int       @id @default(autoincrement())
+  companyZh    String
+  companyEn    String
+  roleZh       String
+  roleEn       String
+  locationZh   String?
+  locationEn   String?
+  startDate    DateTime
+  endDate      DateTime?
+  summaryZh    String
+  summaryEn    String
+  // 重點條列，以 JSON 字串儲存（SQLite 不支援 Json 型別），格式為 string[]
+  highlightsZh String
+  highlightsEn String
+  sortOrder    Int       @default(0)
+}
+
+// 專案作品
+model Project {
+  id           Int      @id @default(autoincrement())
+  nameZh       String
+  nameEn       String
+  summaryZh    String
+  summaryEn    String
+  // 重點條列，以 JSON 字串儲存（SQLite 不支援 Json 型別），格式為 string[]
+  highlightsZh String
+  highlightsEn String
+  // 技術標籤，以 JSON 字串儲存，格式為 string[]
+  techStack    String?
+  link         String?
+  imageUrl     String?
+  sortOrder    Int      @default(0)
+}
+
+// 單一管理者帳號
+model AdminUser {
+  id           Int      @id @default(autoincrement())
+  email        String   @unique
+  passwordHash String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
