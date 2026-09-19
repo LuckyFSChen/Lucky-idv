@@ -46,13 +46,16 @@ function insert(table: string, columns: string[], rows: Record<string, unknown>[
 }
 
 async function main(): Promise<void> {
-  const [profiles, categories, skills, experiences, projects] = await Promise.all([
-    prisma.profile.findMany({ orderBy: { id: 'asc' } }),
-    prisma.skillCategory.findMany({ orderBy: { id: 'asc' } }),
-    prisma.skill.findMany({ orderBy: { id: 'asc' } }),
-    prisma.experience.findMany({ orderBy: { id: 'asc' } }),
-    prisma.project.findMany({ orderBy: { id: 'asc' } }),
-  ])
+  const [profiles, categories, skills, experiences, projects, engineeringCases, certifications] =
+    await Promise.all([
+      prisma.profile.findMany({ orderBy: { id: 'asc' } }),
+      prisma.skillCategory.findMany({ orderBy: { id: 'asc' } }),
+      prisma.skill.findMany({ orderBy: { id: 'asc' } }),
+      prisma.experience.findMany({ orderBy: { id: 'asc' } }),
+      prisma.project.findMany({ orderBy: { id: 'asc' } }),
+      prisma.engineeringCase.findMany({ orderBy: { id: 'asc' } }),
+      prisma.certification.findMany({ orderBy: { id: 'asc' } }),
+    ])
 
   const parts: string[] = [
     '-- idv-web 內容種子資料',
@@ -70,6 +73,8 @@ async function main(): Promise<void> {
       'DELETE FROM "SkillCategory";',
       'DELETE FROM "Experience";',
       'DELETE FROM "Project";',
+      'DELETE FROM "EngineeringCase";',
+      'DELETE FROM "Certification";',
       'DELETE FROM "Profile";',
       '',
     )
@@ -99,10 +104,31 @@ async function main(): Promise<void> {
     insert(
       'Project',
       [
-        'id', 'nameZh', 'nameEn', 'summaryZh', 'summaryEn',
-        'highlightsZh', 'highlightsEn', 'techStack', 'link', 'imageUrl', 'sortOrder',
+        'id', 'nameZh', 'nameEn', 'categoryZh', 'categoryEn', 'subtitleZh', 'subtitleEn',
+        'summaryZh', 'summaryEn', 'highlightsZh', 'highlightsEn', 'techStack',
+        'link', 'githubUrl', 'imageUrl', 'featured', 'sortOrder',
       ],
       projects,
+    ),
+    insert(
+      'EngineeringCase',
+      [
+        'id', 'slug', 'titleZh', 'titleEn', 'categoryZh', 'categoryEn',
+        'summaryZh', 'summaryEn', 'problemZh', 'problemEn', 'contextZh', 'contextEn',
+        'investigationZh', 'investigationEn', 'solutionZh', 'solutionEn',
+        'validationZh', 'validationEn', 'resultZh', 'resultEn',
+        'architecture', 'techStack', 'githubUrl', 'projectUrl',
+        'featured', 'sortOrder', 'createdAt', 'updatedAt',
+      ],
+      engineeringCases,
+    ),
+    insert(
+      'Certification',
+      [
+        'id', 'nameZh', 'nameEn', 'issuerZh', 'issuerEn',
+        'descriptionZh', 'descriptionEn', 'credential', 'issuedAt', 'link', 'sortOrder',
+      ],
+      certifications,
     ),
   )
 
@@ -113,7 +139,8 @@ async function main(): Promise<void> {
   console.log(`已輸出：${outPath}`)
   console.log(
     `內容：Profile ${profiles.length}、SkillCategory ${categories.length}、` +
-      `Skill ${skills.length}、Experience ${experiences.length}、Project ${projects.length}` +
+      `Skill ${skills.length}、Experience ${experiences.length}、Project ${projects.length}、` +
+      `EngineeringCase ${engineeringCases.length}、Certification ${certifications.length}` +
       (reset ? '（含 --reset 的 DELETE）' : ''),
   )
 }

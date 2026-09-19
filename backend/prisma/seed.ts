@@ -9,6 +9,8 @@ async function main() {
   await prisma.skillCategory.deleteMany()
   await prisma.experience.deleteMany()
   await prisma.project.deleteMany()
+  await prisma.engineeringCase.deleteMany()
+  await prisma.certification.deleteMany()
 
   await prisma.profile.create({
     data: {
@@ -246,7 +248,63 @@ async function main() {
       ]),
       techStack: JSON.stringify(['GCP']),
       link: null,
+      githubUrl: null,
       imageUrl: null,
+      categoryZh: 'SaaS 產品',
+      categoryEn: 'SaaS Product',
+      subtitleZh: '餐飲點餐 SaaS 系統',
+      subtitleEn: 'Restaurant Ordering SaaS',
+      featured: true,
+      sortOrder: 0,
+    },
+  })
+
+  await prisma.engineeringCase.create({
+    data: {
+      slug: 'taskflow-multi-agent-pipeline',
+      titleZh: 'TaskFlow：多代理任務流水線',
+      titleEn: 'TaskFlow: Multi-Agent Task Pipeline',
+      categoryZh: 'AI 系統架構',
+      categoryEn: 'AI System Architecture',
+      summaryZh: '設計並實作以 Planner→Executor→Validator→Repair 四階段代理協作的自動化任務系統，讓 AI 能自主規劃、執行、驗收並修正程式變更。',
+      summaryEn: 'Designed and implemented an automated task system built on a four-stage Planner→Executor→Validator→Repair agent pipeline, enabling AI to autonomously plan, execute, validate, and repair code changes.',
+      problemZh: '單一 AI 對話難以穩定完成多步驟、跨檔案的工程任務，容易出現規劃與執行脫節、缺乏驗收機制的問題。',
+      problemEn: 'A single AI conversation struggles to reliably complete multi-step, cross-file engineering tasks, often causing planning and execution to drift apart with no built-in acceptance check.',
+      contextZh: '需要在不引入額外基礎設施成本的前提下，讓非工程背景的使用者也能透過對話下達需求，並取得可驗證、可回溯的交付成果。',
+      contextEn: 'The goal was to let non-engineering users submit requirements conversationally and receive verifiable, traceable deliverables, without introducing heavy additional infrastructure.',
+      investigationZh: '評估多種代理協作模式後，發現將「規劃」「執行」「驗證」「修正」拆成獨立角色並以交接紀錄串接，能有效降低單一角色的認知負擔並提高可觀測性。',
+      investigationEn: 'After evaluating several multi-agent collaboration patterns, splitting the flow into independent Planner, Executor, Validator, and Repair roles connected via handoff records proved to reduce cognitive load per role and improve observability.',
+      solutionZh: '建立以 Planner 產出計畫、Executor 依步驟修改程式、Validator 執行測試與驗收、Repair 針對失敗項目自動修正的迴圈，並以 git worktree 隔離每個任務的工作副本。',
+      solutionEn: 'Built a loop where the Planner produces a plan, the Executor implements each step, the Validator runs tests and checks acceptance criteria, and the Repair role automatically fixes failing items, with each task isolated in its own git worktree.',
+      validationZh: '透過實際任務執行記錄（typecheck / lint / test / build）確認每個角色的產出皆可被下一階段驗證，並統計修正輪數以評估流程穩定性。',
+      validationEn: 'Verified via real task execution logs (typecheck / lint / test / build) that each role’s output can be validated by the next stage, and tracked repair-round counts to assess pipeline stability.',
+      resultZh: '任務完成率與可追溯性顯著提升，使用者可在不理解程式細節的情況下，透過交接紀錄了解每個階段的決策與變更。',
+      resultEn: 'Task completion rate and traceability improved significantly, allowing users to understand each stage’s decisions and changes via handoff records without needing to read the underlying code.',
+      architecture: JSON.stringify([
+        { labelZh: 'Planner', labelEn: 'Planner' },
+        { labelZh: 'Executor', labelEn: 'Executor' },
+        { labelZh: 'Validator', labelEn: 'Validator' },
+        { labelZh: 'Repair', labelEn: 'Repair' },
+      ]),
+      techStack: JSON.stringify(['TypeScript', 'Node.js', 'Git Worktree', 'Prisma']),
+      githubUrl: null,
+      projectUrl: null,
+      featured: true,
+      sortOrder: 0,
+    },
+  })
+
+  await prisma.certification.create({
+    data: {
+      nameZh: 'ISO 27001:2022 資訊安全管理系統主導稽核員',
+      nameEn: 'ISO 27001:2022 Information Security Management System Lead Auditor',
+      issuerZh: 'BSI 英國標準協會',
+      issuerEn: 'BSI (British Standards Institution)',
+      descriptionZh: '取得 CQI & IRCA 認證之 ISO 27001:2022 資訊安全管理系統主導稽核員資格，具備規劃與執行資訊安全稽核之能力。',
+      descriptionEn: 'Holds a CQI & IRCA certified ISO 27001:2022 Information Security Management System Lead Auditor qualification, with the ability to plan and conduct information security audits.',
+      credential: 'CQI & IRCA Lead Auditor',
+      issuedAt: null,
+      link: null,
       sortOrder: 0,
     },
   })
