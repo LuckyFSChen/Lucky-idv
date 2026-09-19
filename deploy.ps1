@@ -1,4 +1,4 @@
-#Requires -Version 5.1
+﻿#Requires -Version 5.1
 <#
     idv-web 一鍵部署腳本
 
@@ -42,9 +42,7 @@ try {
     $nodeVersion = $null
 }
 if (-not $nodeVersion) {
-    Fail-Deploy -Stage "Preflight / Node.js" `
-        -Message "找不到可執行的 Node.js（node -v 失敗）。" `
-        -Hint "請先安裝 Node.js（建議 LTS 版本）並確認已加入 PATH。"
+    Fail-Deploy -Stage "Preflight / Node.js" -Message "找不到可執行的 Node.js（node -v 失敗）。" -Hint "請先安裝 Node.js（建議 LTS 版本）並確認已加入 PATH。"
 }
 Write-Host "Node.js 版本：$nodeVersion"
 
@@ -55,9 +53,7 @@ try {
     $npmVersion = $null
 }
 if (-not $npmVersion) {
-    Fail-Deploy -Stage "Preflight / npm" `
-        -Message "找不到可執行的 npm（npm -v 失敗）。" `
-        -Hint 'npm 通常隨 Node.js 一併安裝，請確認 Node.js 安裝是否完整並已加入 PATH。'
+    Fail-Deploy -Stage "Preflight / npm" -Message "找不到可執行的 npm（npm -v 失敗）。" -Hint "npm 通常隨 Node.js 一併安裝，請確認 Node.js 安裝是否完整並已加入 PATH。"
 }
 Write-Host "npm 版本：$npmVersion"
 
@@ -68,18 +64,14 @@ try {
     $wranglerVersion = $null
 }
 if (-not $wranglerVersion) {
-    Fail-Deploy -Stage "Preflight / Wrangler" `
-        -Message "無法執行 wrangler（npx wrangler --version 失敗）。" `
-        -Hint '請先在專案根目錄執行 npm install 以安裝 devDependencies（含 wrangler）。'
+    Fail-Deploy -Stage "Preflight / Wrangler" -Message "無法執行 wrangler（npx wrangler --version 失敗）。" -Hint "請先在專案根目錄執行 npm install 以安裝 devDependencies（含 wrangler）。"
 }
 Write-Host "Wrangler 版本：$wranglerVersion"
 
 Write-Step "Preflight 檢查：wrangler.jsonc"
 $wranglerConfigPath = Join-Path $ProjectRoot 'wrangler.jsonc'
 if (-not (Test-Path $wranglerConfigPath)) {
-    Fail-Deploy -Stage "Preflight / wrangler.jsonc" `
-        -Message "找不到 $wranglerConfigPath。" `
-        -Hint "請確認在專案根目錄執行本腳本，且 wrangler.jsonc 未被移除。"
+    Fail-Deploy -Stage "Preflight / wrangler.jsonc" -Message "找不到 $wranglerConfigPath。" -Hint "請確認在專案根目錄執行本腳本，且 wrangler.jsonc 未被移除。"
 }
 Write-Host "已找到 wrangler.jsonc：$wranglerConfigPath"
 
