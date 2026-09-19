@@ -252,6 +252,16 @@ a {
   outline-offset: 1px;
 }
 
+.admin-form__field--checkbox {
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.admin-form__field--checkbox input {
+  width: auto;
+}
+
 .admin-form__add {
   align-self: flex-start;
   margin-top: 0.5rem;

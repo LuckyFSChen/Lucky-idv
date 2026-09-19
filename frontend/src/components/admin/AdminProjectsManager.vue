@@ -12,13 +12,19 @@ const authStore = useAdminAuthStore()
 interface ProjectDraft {
   nameZh: string
   nameEn: string
+  categoryZh: string
+  categoryEn: string
+  subtitleZh: string
+  subtitleEn: string
   summaryZh: string
   summaryEn: string
   highlightsZhText: string
   highlightsEnText: string
   techStackText: string
   link: string
+  githubUrl: string
   imageUrl: string
+  featured: boolean
   sortOrder: number
 }
 
@@ -40,13 +46,19 @@ function emptyDraft(): ProjectDraft {
   return {
     nameZh: '',
     nameEn: '',
+    categoryZh: '',
+    categoryEn: '',
+    subtitleZh: '',
+    subtitleEn: '',
     summaryZh: '',
     summaryEn: '',
     highlightsZhText: '',
     highlightsEnText: '',
     techStackText: '',
     link: '',
+    githubUrl: '',
     imageUrl: '',
+    featured: false,
     sortOrder: 0,
   }
 }
@@ -55,13 +67,19 @@ function draftFromProject(project: Project): ProjectDraft {
   return {
     nameZh: project.nameZh,
     nameEn: project.nameEn,
+    categoryZh: project.categoryZh ?? '',
+    categoryEn: project.categoryEn ?? '',
+    subtitleZh: project.subtitleZh ?? '',
+    subtitleEn: project.subtitleEn ?? '',
     summaryZh: project.summaryZh,
     summaryEn: project.summaryEn,
     highlightsZhText: project.highlightsZh.join('\n'),
     highlightsEnText: project.highlightsEn.join('\n'),
     techStackText: project.techStack.join(', '),
     link: project.link ?? '',
+    githubUrl: project.githubUrl ?? '',
     imageUrl: project.imageUrl ?? '',
+    featured: project.featured,
     sortOrder: project.sortOrder,
   }
 }
@@ -70,13 +88,19 @@ function toInput(draft: ProjectDraft): ProjectInput {
   return {
     nameZh: draft.nameZh,
     nameEn: draft.nameEn,
+    categoryZh: draft.categoryZh || null,
+    categoryEn: draft.categoryEn || null,
+    subtitleZh: draft.subtitleZh || null,
+    subtitleEn: draft.subtitleEn || null,
     summaryZh: draft.summaryZh,
     summaryEn: draft.summaryEn,
     highlightsZh: linesToArray(draft.highlightsZhText),
     highlightsEn: linesToArray(draft.highlightsEnText),
     techStack: csvToArray(draft.techStackText),
     link: draft.link || null,
+    githubUrl: draft.githubUrl || null,
     imageUrl: draft.imageUrl || null,
+    featured: draft.featured,
     sortOrder: draft.sortOrder,
   }
 }
@@ -190,9 +214,44 @@ async function addProject() {
               >
             </label>
             <label class="admin-form__field">
+              <span>分類（中文）</span>
+              <input
+                v-model="editDrafts[project.id].categoryZh"
+                type="text"
+              >
+            </label>
+            <label class="admin-form__field">
+              <span>分類（英文）</span>
+              <input
+                v-model="editDrafts[project.id].categoryEn"
+                type="text"
+              >
+            </label>
+            <label class="admin-form__field">
+              <span>副標題（中文）</span>
+              <input
+                v-model="editDrafts[project.id].subtitleZh"
+                type="text"
+              >
+            </label>
+            <label class="admin-form__field">
+              <span>副標題（英文）</span>
+              <input
+                v-model="editDrafts[project.id].subtitleEn"
+                type="text"
+              >
+            </label>
+            <label class="admin-form__field">
               <span>連結</span>
               <input
                 v-model="editDrafts[project.id].link"
+                type="url"
+              >
+            </label>
+            <label class="admin-form__field">
+              <span>GitHub 連結</span>
+              <input
+                v-model="editDrafts[project.id].githubUrl"
                 type="url"
               >
             </label>
@@ -202,6 +261,13 @@ async function addProject() {
                 v-model="editDrafts[project.id].imageUrl"
                 type="text"
               >
+            </label>
+            <label class="admin-form__field admin-form__field--checkbox">
+              <input
+                v-model="editDrafts[project.id].featured"
+                type="checkbox"
+              >
+              <span>精選（Featured）</span>
             </label>
           </div>
           <label class="admin-form__field">
@@ -305,9 +371,44 @@ async function addProject() {
           >
         </label>
         <label class="admin-form__field">
+          <span>分類（中文）</span>
+          <input
+            v-model="newDraft.categoryZh"
+            type="text"
+          >
+        </label>
+        <label class="admin-form__field">
+          <span>分類（英文）</span>
+          <input
+            v-model="newDraft.categoryEn"
+            type="text"
+          >
+        </label>
+        <label class="admin-form__field">
+          <span>副標題（中文）</span>
+          <input
+            v-model="newDraft.subtitleZh"
+            type="text"
+          >
+        </label>
+        <label class="admin-form__field">
+          <span>副標題（英文）</span>
+          <input
+            v-model="newDraft.subtitleEn"
+            type="text"
+          >
+        </label>
+        <label class="admin-form__field">
           <span>連結</span>
           <input
             v-model="newDraft.link"
+            type="url"
+          >
+        </label>
+        <label class="admin-form__field">
+          <span>GitHub 連結</span>
+          <input
+            v-model="newDraft.githubUrl"
             type="url"
           >
         </label>
@@ -317,6 +418,13 @@ async function addProject() {
             v-model="newDraft.imageUrl"
             type="text"
           >
+        </label>
+        <label class="admin-form__field admin-form__field--checkbox">
+          <input
+            v-model="newDraft.featured"
+            type="checkbox"
+          >
+          <span>精選（Featured）</span>
         </label>
       </div>
       <label class="admin-form__field">

@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
+import AdminCertificationsManager from '@/components/admin/AdminCertificationsManager.vue'
+import AdminEngineeringCasesManager from '@/components/admin/AdminEngineeringCasesManager.vue'
 import AdminExperienceManager from '@/components/admin/AdminExperienceManager.vue'
 import AdminProfileForm from '@/components/admin/AdminProfileForm.vue'
 import AdminProjectsManager from '@/components/admin/AdminProjectsManager.vue'
@@ -8,13 +10,15 @@ import AdminSkillsManager from '@/components/admin/AdminSkillsManager.vue'
 import { useAdminAuthStore } from '@/stores/adminAuth'
 import { usePortfolioStore } from '@/stores/portfolio'
 
-type Tab = 'profile' | 'skills' | 'experience' | 'projects'
+type Tab = 'profile' | 'skills' | 'experience' | 'projects' | 'engineering-cases' | 'certifications'
 
 const tabs: { id: Tab; label: string }[] = [
   { id: 'profile', label: '個人資料' },
   { id: 'skills', label: '技能分類' },
   { id: 'experience', label: '工作經歷' },
   { id: 'projects', label: '專案作品' },
+  { id: 'engineering-cases', label: '工程案例' },
+  { id: 'certifications', label: '專業認證' },
 ]
 
 const portfolioStore = usePortfolioStore()
@@ -110,8 +114,20 @@ function logout() {
         @unauthorized="handleUnauthorized"
       />
       <AdminProjectsManager
-        v-else
+        v-else-if="activeTab === 'projects'"
         :projects="portfolioStore.projects"
+        @refresh="refresh"
+        @unauthorized="handleUnauthorized"
+      />
+      <AdminEngineeringCasesManager
+        v-else-if="activeTab === 'engineering-cases'"
+        :cases="portfolioStore.engineeringCases"
+        @refresh="refresh"
+        @unauthorized="handleUnauthorized"
+      />
+      <AdminCertificationsManager
+        v-else
+        :certifications="portfolioStore.certifications"
         @refresh="refresh"
         @unauthorized="handleUnauthorized"
       />

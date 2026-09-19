@@ -10,6 +10,11 @@ const router = createRouter({
       component: () => import('@/views/HomeView.vue'),
     },
     {
+      path: '/cases/:slug',
+      name: 'case-detail',
+      component: () => import('@/views/CaseDetailView.vue'),
+    },
+    {
       path: '/admin/login',
       name: 'admin-login',
       component: () => import('@/views/AdminLoginView.vue'),
