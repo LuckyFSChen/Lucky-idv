@@ -1,67 +1,66 @@
 {
-  "$schema": "node_modules/wrangler/config-schema.json",
-
-  "name": "idv-web",
-  "main": "worker/index.ts",
-
-  // 專案導入 Cloudflare 的日期。改動此值會改變 Workers runtime 行為，請勿隨意更新。
-  //
-  // ⚠️ 此日期**不得超過已安裝 workerd binary 支援的上限**，否則 `wrangler dev` 與
-  //    miniflare 都會直接拒絕啟動並報：
-  //      "This Worker requires compatibility date ..., but the newest date
-  //       supported by this server binary is ..."
-  //    目前 wrangler ^4 帶的 workerd@1.20260730.1 上限為 2026-08-06。
-  //    升級 wrangler 後才可調高，並記得同步 backend/src/__tests__/d1.adapter.test.ts。
-  "compatibility_date": "2026-08-06",
-
-  // 目前的 Worker 只使用 Web 標準 API（Request / Response / fetch / URL），
-  // 不需要 nodejs_compat。待 Express → Hono、Prisma → D1 遷移時再視需要加入。
-  // "compatibility_flags": ["nodejs_compat"],
-
-  "assets": {
-    // frontend 的 production build 輸出目錄。
-    // 由 `frontend/vite.config.ts` 決定：未覆寫 build.outDir，故為 Vite 預設的 dist/。
-    "directory": "./frontend/dist",
-
-    // Vue Router 使用 createWebHistory（history mode），因此未命中靜態檔的路徑
-    // 必須回傳 index.html 交由 client-side router 解析，否則直接重新整理會 404。
-    // 這是 Cloudflare Static Assets 官方支援的 SPA 設定，回應為 200 + index.html。
-    "not_found_handling": "single-page-application",
-
-    // ⚠️ 關鍵設定：這兩組前綴必須先進 Worker，不得走 assets。
-    // 若不排除，上面的 SPA fallback 會把 /api/* 的 404、401 一併吞掉並回傳
-    // 200 + index.html（HTML），前端的 res.json() 會解析失敗 —— 屬於「靜默的
-    // API contract 破壞」，是 Static Assets + SPA 組合最常見的陷阱。
-    // /uploads/* 同理：否則圖片請求會拿到 HTML 而不是圖片。
-    "run_worker_first": ["/api/*", "/uploads/*"]
-  },
-
-  "observability": {
-    "enabled": true
-  },
-
-  // D1 binding。Worker 透過 env.DB 取得原生 binding，再交給 @prisma/adapter-d1，
-  // 不經過 Cloudflare REST API。取得 client 一律走 backend/src/db/client.ts 的 getPrisma(env)。
-  //
-  // ⚠️ database_id 目前是**佔位用的全零 UUID**，尚未建立任何 Cloudflare 資源。
-  //    本機（--local，miniflare）可直接使用；要對 --remote 操作前，
-  //    必須先 `wrangler d1 create idv-web` 並把回傳的真實 id 貼進來。
-  "d1_databases": [
-    {
-      "binding": "DB",
-      "database_name": "idv-web",
-      "database_id": "00000000-0000-0000-0000-000000000000",
-      "migrations_dir": "backend/migrations"
-    }
-  ]
-
-  // ─────────────────────────────────────────────────────────────────────────
-  // 後續 Phase 才會加入，目前刻意不建立（本 Phase 不建立 production D1 / R2）：
-  //
-  // "r2_buckets": [
-  //   { "binding": "UPLOADS", "bucket_name": "idv-web-uploads" }
-  // ]
-  //
-  // 詳見 CLOUDFLARE_MIGRATION_PLAN.md 的 P8（儲存層）。D1 的使用方式見 docs/D1.md。
-  // ─────────────────────────────────────────────────────────────────────────
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"name": "idv-web",
+	"main": "worker/index.ts",
+	// 專案導入 Cloudflare 的日期。改動此值會改變 Workers runtime 行為，請勿隨意更新。
+	//
+	// ⚠️ 此日期**不得超過已安裝 workerd binary 支援的上限**，否則 `wrangler dev` 與
+	//    miniflare 都會直接拒絕啟動並報：
+	//      "This Worker requires compatibility date ..., but the newest date
+	//       supported by this server binary is ..."
+	//    目前 wrangler ^4 帶的 workerd@1.20260730.1 上限為 2026-08-06。
+	//    升級 wrangler 後才可調高，並記得同步 backend/src/__tests__/d1.adapter.test.ts。
+	"compatibility_date": "2026-08-06",
+	// 目前的 Worker 只使用 Web 標準 API（Request / Response / fetch / URL），
+	// 不需要 nodejs_compat。待 Express → Hono、Prisma → D1 遷移時再視需要加入。
+	// "compatibility_flags": ["nodejs_compat"],
+	"assets": {
+		// frontend 的 production build 輸出目錄。
+		// 由 `frontend/vite.config.ts` 決定：未覆寫 build.outDir，故為 Vite 預設的 dist/。
+		"directory": "./frontend/dist",
+		// Vue Router 使用 createWebHistory（history mode），因此未命中靜態檔的路徑
+		// 必須回傳 index.html 交由 client-side router 解析，否則直接重新整理會 404。
+		// 這是 Cloudflare Static Assets 官方支援的 SPA 設定，回應為 200 + index.html。
+		"not_found_handling": "single-page-application",
+		// ⚠️ 關鍵設定：這兩組前綴必須先進 Worker，不得走 assets。
+		// 若不排除，上面的 SPA fallback 會把 /api/* 的 404、401 一併吞掉並回傳
+		// 200 + index.html（HTML），前端的 res.json() 會解析失敗 —— 屬於「靜默的
+		// API contract 破壞」，是 Static Assets + SPA 組合最常見的陷阱。
+		// /uploads/* 同理：否則圖片請求會拿到 HTML 而不是圖片。
+		"run_worker_first": [
+			"/api/*",
+			"/uploads/*"
+		]
+	},
+	"observability": {
+		"enabled": true
+	},
+	// D1 binding。Worker 透過 env.DB 取得原生 binding，再交給 @prisma/adapter-d1，
+	// 不經過 Cloudflare REST API。取得 client 一律走 backend/src/db/client.ts 的 getPrisma(env)。
+	//
+	// ⚠️ database_id 目前是**佔位用的全零 UUID**，尚未建立任何 Cloudflare 資源。
+	//    本機（--local，miniflare）可直接使用；要對 --remote 操作前，
+	//    必須先 `wrangler d1 create idv-web` 並把回傳的真實 id 貼進來。
+	"d1_databases": [
+		{
+			"binding": "DB",
+			"database_name": "idv-web",
+			"database_id": "00000000-0000-0000-0000-000000000000",
+			"migrations_dir": "backend/migrations"
+		},
+		{
+			"binding": "idv_web",
+			"database_name": "idv-web",
+			"database_id": "4e1438b3-1768-4ef0-891c-5f047c815a03"
+		}
+	]
+	// ─────────────────────────────────────────────────────────────────────────
+	// 後續 Phase 才會加入，目前刻意不建立（本 Phase 不建立 production D1 / R2）：
+	//
+	// "r2_buckets": [
+	//   { "binding": "UPLOADS", "bucket_name": "idv-web-uploads" }
+	// ]
+	//
+	// 詳見 CLOUDFLARE_MIGRATION_PLAN.md 的 P8（儲存層）。D1 的使用方式見 docs/D1.md。
+	// ─────────────────────────────────────────────────────────────────────────
 }
