@@ -1,4 +1,5 @@
 import bcrypt from 'bcryptjs'
+import { Prisma } from '@prisma/client'
 import { Router } from 'express'
 import rateLimit from 'express-rate-limit'
 import { z } from 'zod'
@@ -6,6 +7,10 @@ import { prisma } from '../db.js'
 import { requireAuth } from '../middleware/requireAuth.js'
 import { avatarUpload } from '../middleware/upload.js'
 import {
+  certificationCreateSchema,
+  certificationUpdateSchema,
+  engineeringCaseCreateSchema,
+  engineeringCaseUpdateSchema,
   experienceCreateSchema,
   experienceUpdateSchema,
   loginSchema,
@@ -18,7 +23,7 @@ import {
   skillUpdateSchema,
 } from '../schemas/admin.js'
 import { signAdminToken } from '../utils/jwt.js'
-import { parseContactLinks, parseStringArray } from '../utils/json.js'
+import { parseArchitectureSteps, parseContactLinks, parseStringArray } from '../utils/json.js'
 
 export const adminRouter = Router()
 
@@ -327,5 +332,148 @@ adminRouter.delete('/projects/:id', async (req, res) => {
     res.status(204).send()
   } catch {
     res.status(404).json({ error: '找不到指定的專案。' })
+  }
+})
+
+function isUniqueConstraintError(error: unknown): boolean {
+  return error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002'
+}
+
+function toEngineeringCaseUpdateData(data: z.infer<typeof engineeringCaseUpdateSchema>) {
+  const { architecture, techStack, ...rest } = data
+  return {
+    ...rest,
+    ...(architecture !== undefined ? { architecture: JSON.stringify(architecture) } : {}),
+    ...(techStack !== undefined ? { techStack: JSON.stringify(techStack) } : {}),
+  }
+}
+
+function toEngineeringCaseCreateData(data: z.infer<typeof engineeringCaseCreateSchema>) {
+  const { architecture, techStack, ...rest } = data
+  return {
+    ...rest,
+    architecture: architecture !== undefined ? JSON.stringify(architecture) : null,
+    techStack: techStack !== undefined ? JSON.stringify(techStack) : null,
+  }
+}
+
+function serializeEngineeringCase(engineeringCase: {
+  architecture: string | null
+  techStack: string | null
+  [key: string]: unknown
+}) {
+  return {
+    ...engineeringCase,
+    architecture: parseArchitectureSteps(engineeringCase.architecture),
+    techStack: parseStringArray(engineeringCase.techStack),
+  }
+}
+
+adminRouter.post('/engineering-cases', async (req, res) => {
+  const parsed = engineeringCaseCreateSchema.safeParse(req.body)
+  if (!parsed.success) {
+    res.status(400).json({ error: '工程案例格式不正確。', details: parsed.error.flatten() })
+    return
+  }
+  try {
+    const engineeringCase = await prisma.engineeringCase.create({ data: toEngineeringCaseCreateData(parsed.data) })
+    res.status(201).json(serializeEngineeringCase(engineeringCase))
+  } catch (error) {
+    if (isUniqueConstraintError(error)) {
+      res.status(409).json({ error: 'slug 已被使用，請更換其他 slug。' })
+      return
+    }
+    throw error
+  }
+})
+
+adminRouter.put('/engineering-cases/:id', async (req, res) => {
+  const id = idParam(req)
+  const parsed = engineeringCaseUpdateSchema.safeParse(req.body)
+  if (id === null || !parsed.success) {
+    res.status(400).json({ error: '工程案例格式不正確。' })
+    return
+  }
+  try {
+    const engineeringCase = await prisma.engineeringCase.update({
+      where: { id },
+      data: toEngineeringCaseUpdateData(parsed.data),
+    })
+    res.json(serializeEngineeringCase(engineeringCase))
+  } catch (error) {
+    if (isUniqueConstraintError(error)) {
+      res.status(409).json({ error: 'slug 已被使用，請更換其他 slug。' })
+      return
+    }
+    res.status(404).json({ error: '找不到指定的工程案例。' })
+  }
+})
+
+adminRouter.delete('/engineering-cases/:id', async (req, res) => {
+  const id = idParam(req)
+  if (id === null) {
+    res.status(400).json({ error: '參數格式不正確。' })
+    return
+  }
+  try {
+    await prisma.engineeringCase.delete({ where: { id } })
+    res.status(204).send()
+  } catch {
+    res.status(404).json({ error: '找不到指定的工程案例。' })
+  }
+})
+
+function toCertificationUpdateData(data: z.infer<typeof certificationUpdateSchema>) {
+  const { issuedAt, ...rest } = data
+  return {
+    ...rest,
+    ...(issuedAt !== undefined ? { issuedAt: issuedAt === null ? null : new Date(issuedAt) } : {}),
+  }
+}
+
+function toCertificationCreateData(data: z.infer<typeof certificationCreateSchema>) {
+  const { issuedAt, ...rest } = data
+  return {
+    ...rest,
+    issuedAt: issuedAt == null ? null : new Date(issuedAt),
+  }
+}
+
+adminRouter.post('/certifications', async (req, res) => {
+  const parsed = certificationCreateSchema.safeParse(req.body)
+  if (!parsed.success) {
+    res.status(400).json({ error: '認證格式不正確。', details: parsed.error.flatten() })
+    return
+  }
+  const certification = await prisma.certification.create({ data: toCertificationCreateData(parsed.data) })
+  res.status(201).json(certification)
+})
+
+adminRouter.put('/certifications/:id', async (req, res) => {
+  const id = idParam(req)
+  const parsed = certificationUpdateSchema.safeParse(req.body)
+  if (id === null || !parsed.success) {
+    res.status(400).json({ error: '認證格式不正確。' })
+    return
+  }
+  try {
+    const certification = await prisma.certification.update({ where: { id }, data: toCertificationUpdateData(parsed.data) })
+    res.json(certification)
+  } catch {
+    res.status(404).json({ error: '找不到指定的認證。' })
+  }
+})
+
+adminRouter.delete('/certifications/:id', async (req, res) => {
+  const id = idParam(req)
+  if (id === null) {
+    res.status(400).json({ error: '參數格式不正確。' })
+    return
+  }
+  try {
+    await prisma.certification.delete({ where: { id } })
+    res.status(204).send()
+  } catch {
+    res.status(404).json({ error: '找不到指定的認證。' })
   }
 })
