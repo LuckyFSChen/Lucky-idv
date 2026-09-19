@@ -53,13 +53,19 @@ const projects: Project[] = [
     id: 1,
     nameZh: 'DineFlow',
     nameEn: 'DineFlow',
+    categoryZh: null,
+    categoryEn: null,
+    subtitleZh: null,
+    subtitleEn: null,
     summaryZh: '摘要',
     summaryEn: 'Summary',
     highlightsZh: ['重點一'],
     highlightsEn: ['Highlight one'],
     techStack: ['GCP'],
     link: null,
+    githubUrl: null,
     imageUrl: null,
+    featured: false,
     sortOrder: 0,
   },
 ]
@@ -79,6 +85,8 @@ describe('HomeView', () => {
         if (url.includes('/api/skills')) return jsonResponse(skillCategories)
         if (url.includes('/api/experience')) return jsonResponse(experiences)
         if (url.includes('/api/projects')) return jsonResponse(projects)
+        if (url.includes('/api/engineering-cases')) return jsonResponse([])
+        if (url.includes('/api/certifications')) return jsonResponse([])
         return Promise.reject(new Error(`unexpected fetch: ${url}`))
       }),
     )

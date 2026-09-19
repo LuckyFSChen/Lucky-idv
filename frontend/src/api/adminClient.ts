@@ -1,4 +1,14 @@
-import type { ContactLink, Experience, Profile, Project, Skill, SkillCategory } from '@/types/api'
+import type {
+  ArchitectureStep,
+  Certification,
+  ContactLink,
+  EngineeringCase,
+  Experience,
+  Profile,
+  Project,
+  Skill,
+  SkillCategory,
+} from '@/types/api'
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL ?? ''
 
@@ -86,13 +96,60 @@ export interface ExperienceInput {
 export interface ProjectInput {
   nameZh: string
   nameEn: string
+  categoryZh?: string | null
+  categoryEn?: string | null
+  subtitleZh?: string | null
+  subtitleEn?: string | null
   summaryZh: string
   summaryEn: string
   highlightsZh: string[]
   highlightsEn: string[]
   techStack?: string[]
   link?: string | null
+  githubUrl?: string | null
   imageUrl?: string | null
+  featured?: boolean
+  sortOrder?: number
+}
+
+export interface EngineeringCaseInput {
+  slug: string
+  titleZh: string
+  titleEn: string
+  categoryZh: string
+  categoryEn: string
+  summaryZh: string
+  summaryEn: string
+  problemZh: string
+  problemEn: string
+  contextZh: string
+  contextEn: string
+  investigationZh: string
+  investigationEn: string
+  solutionZh: string
+  solutionEn: string
+  validationZh: string
+  validationEn: string
+  resultZh: string
+  resultEn: string
+  architecture?: ArchitectureStep[]
+  techStack?: string[]
+  githubUrl?: string | null
+  projectUrl?: string | null
+  featured?: boolean
+  sortOrder?: number
+}
+
+export interface CertificationInput {
+  nameZh: string
+  nameEn: string
+  issuerZh: string
+  issuerEn: string
+  descriptionZh?: string | null
+  descriptionEn?: string | null
+  credential?: string | null
+  issuedAt?: string | null
+  link?: string | null
   sortOrder?: number
 }
 
@@ -153,4 +210,34 @@ export const adminApi = {
 
   deleteProject: (token: string | null, id: number) =>
     adminRequest<void>(`/api/admin/projects/${id}`, token, { method: 'DELETE' }),
+
+  createEngineeringCase: (token: string | null, data: EngineeringCaseInput) =>
+    adminRequest<EngineeringCase>('/api/admin/engineering-cases', token, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  updateEngineeringCase: (token: string | null, id: number, data: Partial<EngineeringCaseInput>) =>
+    adminRequest<EngineeringCase>(`/api/admin/engineering-cases/${id}`, token, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    }),
+
+  deleteEngineeringCase: (token: string | null, id: number) =>
+    adminRequest<void>(`/api/admin/engineering-cases/${id}`, token, { method: 'DELETE' }),
+
+  createCertification: (token: string | null, data: CertificationInput) =>
+    adminRequest<Certification>('/api/admin/certifications', token, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  updateCertification: (token: string | null, id: number, data: Partial<CertificationInput>) =>
+    adminRequest<Certification>(`/api/admin/certifications/${id}`, token, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    }),
+
+  deleteCertification: (token: string | null, id: number) =>
+    adminRequest<void>(`/api/admin/certifications/${id}`, token, { method: 'DELETE' }),
 }
