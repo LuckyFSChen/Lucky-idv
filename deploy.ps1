@@ -75,5 +75,50 @@ if (-not (Test-Path $wranglerConfigPath)) {
 }
 Write-Host "已找到 wrangler.jsonc：$wranglerConfigPath"
 
+Write-Step "Preflight 檢查：Cloudflare 登入狀態"
+try {
+    $whoamiOutput = (npx --yes wrangler whoami 2>&1 | Out-String).Trim()
+} catch {
+    $whoamiOutput = ''
+}
+if ([string]::IsNullOrWhiteSpace($whoamiOutput) -or $whoamiOutput -match '(?i)not authenticated' -or $whoamiOutput -notmatch '(?i)logged in') {
+    Fail-Deploy -Stage "Preflight / Cloudflare 登入" -Message "尚未登入 Cloudflare（npx wrangler whoami 未顯示已登入帳號）。" -Hint "請先執行 npx wrangler login 完成登入後再重新執行本腳本。"
+}
+Write-Host $whoamiOutput
+
+Write-Step "Preflight 檢查：D1 database_id"
+$wranglerConfigContent = Get-Content -Path $wranglerConfigPath -Raw
+$databaseIdMatch = [regex]::Match($wranglerConfigContent, '"database_id"\s*:\s*"([^"]*)"')
+$databaseId = if ($databaseIdMatch.Success) { $databaseIdMatch.Groups[1].Value } else { '' }
+$isPlaceholderId = $false
+if ([string]::IsNullOrWhiteSpace($databaseId)) {
+    $isPlaceholderId = $true
+} elseif ($databaseId -eq '00000000-0000-0000-0000-000000000000') {
+    $isPlaceholderId = $true
+} elseif ($databaseId -match '(?i)xxxx|example|your-database-id|placeholder|changeme') {
+    $isPlaceholderId = $true
+} elseif ($databaseId -notmatch '^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$') {
+    $isPlaceholderId = $true
+}
+if ($isPlaceholderId) {
+    Fail-Deploy -Stage "Preflight / D1 database_id" -Message "wrangler.jsonc 的 database_id 仍為佔位值、空值或明顯範例值，尚未建立正式 D1 資源。" -Hint "請先執行 npx wrangler d1 create idv-web 建立正式 D1 資料庫，並把回傳的 database_id 貼回 wrangler.jsonc 後再重新執行本腳本。"
+}
+Write-Host "D1 database_id：$databaseId"
+
 Write-Host ""
-Write-Host "[OK] 基礎環境檢查全數通過（Node.js / npm / Wrangler / wrangler.jsonc）。" -ForegroundColor Green
+Write-Host "[OK] 全部 Preflight 檢查通過（Node.js / npm / Wrangler / Cloudflare 登入 / wrangler.jsonc / D1 database_id）。" -ForegroundColor Green
+
+Write-Step "執行部署：npm run cf:deploy（frontend build + wrangler deploy）"
+npm run cf:deploy
+$deployExitCode = $LASTEXITCODE
+
+if ($deployExitCode -ne 0) {
+    Write-Host ""
+    Write-Host "[FAIL] 部署失敗：npm run cf:deploy 結束碼為 $deployExitCode。" -ForegroundColor Red
+    Write-Host "       失敗可能發生於 frontend build 或 wrangler deploy 階段，請往上檢視輸出以定位問題。" -ForegroundColor Yellow
+    exit $deployExitCode
+}
+
+Write-Host ""
+Write-Host "[OK] 部署完成：frontend build 與 Cloudflare Worker 已透過 npm run cf:deploy 成功佈署。" -ForegroundColor Green
+exit 0
