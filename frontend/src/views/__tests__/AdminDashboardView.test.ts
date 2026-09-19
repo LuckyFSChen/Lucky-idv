@@ -71,6 +71,8 @@ describe('AdminDashboardView', () => {
         if (url.includes('/api/skills')) return jsonResponse(skillCategories)
         if (url.includes('/api/experience')) return jsonResponse(experiences)
         if (url.includes('/api/projects')) return jsonResponse(projects)
+        if (url.includes('/api/engineering-cases')) return jsonResponse([])
+        if (url.includes('/api/certifications')) return jsonResponse([])
         return Promise.reject(new Error(`unexpected fetch: ${url}`))
       }),
     )
@@ -118,6 +120,21 @@ describe('AdminDashboardView', () => {
       expect.objectContaining({ displayName: 'Lucky' }),
     )
     expect(wrapper.text()).toContain('個人資料已儲存。')
+  })
+
+  it('shows the engineering cases and certifications tabs and switches between them', async () => {
+    const { wrapper } = await mountDashboard()
+
+    const tabLabels = wrapper.findAll('.admin__tab').map((btn) => btn.text())
+    expect(tabLabels).toContain('工程案例')
+    expect(tabLabels).toContain('專業認證')
+
+    await wrapper.findAll('.admin__tab')[4].trigger('click')
+    expect(wrapper.text()).toContain('新增工程案例')
+    expect(wrapper.find('input[type="url"]').exists()).toBe(true)
+
+    await wrapper.findAll('.admin__tab')[5].trigger('click')
+    expect(wrapper.text()).toContain('新增認證')
   })
 
   it('logs out and redirects to login when the admin API returns 401', async () => {

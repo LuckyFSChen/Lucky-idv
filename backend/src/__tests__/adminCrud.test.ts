@@ -180,6 +180,177 @@ describe('admin project CRUD', () => {
       .set('Authorization', `Bearer ${token}`)
     expect(deleteRes.status).toBe(204)
   })
+
+  it('creates a project with category/subtitle/featured/githubUrl fields', async () => {
+    const createRes = await request(app)
+      .post('/api/admin/projects')
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        nameZh: '測試專案二',
+        nameEn: 'Test Project Two',
+        categoryZh: 'SaaS 產品',
+        categoryEn: 'SaaS Product',
+        subtitleZh: '副標題',
+        subtitleEn: 'Subtitle',
+        summaryZh: '摘要',
+        summaryEn: 'Summary',
+        highlightsZh: ['特色一'],
+        highlightsEn: ['Feature one'],
+        githubUrl: 'https://github.com/example/test-project',
+        featured: true,
+      })
+    expect(createRes.status).toBe(201)
+    expect(createRes.body.categoryZh).toBe('SaaS 產品')
+    expect(createRes.body.subtitleEn).toBe('Subtitle')
+    expect(createRes.body.githubUrl).toBe('https://github.com/example/test-project')
+    expect(createRes.body.featured).toBe(true)
+    const id = createRes.body.id as number
+
+    const deleteRes = await request(app)
+      .delete(`/api/admin/projects/${id}`)
+      .set('Authorization', `Bearer ${token}`)
+    expect(deleteRes.status).toBe(204)
+  })
+})
+
+const validEngineeringCasePayload = {
+  slug: 'test-engineering-case',
+  titleZh: '測試工程案例',
+  titleEn: 'Test Engineering Case',
+  categoryZh: '測試分類',
+  categoryEn: 'Test Category',
+  summaryZh: '摘要',
+  summaryEn: 'Summary',
+  problemZh: '問題',
+  problemEn: 'Problem',
+  contextZh: '背景',
+  contextEn: 'Context',
+  investigationZh: '調查',
+  investigationEn: 'Investigation',
+  solutionZh: '解法',
+  solutionEn: 'Solution',
+  validationZh: '驗證',
+  validationEn: 'Validation',
+  resultZh: '結果',
+  resultEn: 'Result',
+  architecture: [{ labelZh: '步驟一', labelEn: 'Step One' }],
+  techStack: ['TypeScript'],
+  featured: false,
+  sortOrder: 5,
+}
+
+describe('admin engineering case CRUD', () => {
+  it('rejects creation without authentication', async () => {
+    const res = await request(app).post('/api/admin/engineering-cases').send(validEngineeringCasePayload)
+    expect(res.status).toBe(401)
+  })
+
+  it('rejects creation with missing required fields', async () => {
+    const res = await request(app)
+      .post('/api/admin/engineering-cases')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ slug: 'incomplete-case', titleZh: '不完整案例' })
+    expect(res.status).toBe(400)
+  })
+
+  it('rejects creation with an invalid slug format', async () => {
+    const res = await request(app)
+      .post('/api/admin/engineering-cases')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ ...validEngineeringCasePayload, slug: 'Invalid Slug!' })
+    expect(res.status).toBe(400)
+  })
+
+  it('creates, updates, is visible on the public API, and deletes an engineering case', async () => {
+    const createRes = await request(app)
+      .post('/api/admin/engineering-cases')
+      .set('Authorization', `Bearer ${token}`)
+      .send(validEngineeringCasePayload)
+    expect(createRes.status).toBe(201)
+    expect(createRes.body.architecture).toEqual([{ labelZh: '步驟一', labelEn: 'Step One' }])
+    expect(createRes.body.techStack).toEqual(['TypeScript'])
+    const id = createRes.body.id as number
+
+    const publicRes = await request(app).get(`/api/engineering-cases/${validEngineeringCasePayload.slug}`)
+    expect(publicRes.status).toBe(200)
+    expect(publicRes.body.titleZh).toBe('測試工程案例')
+
+    const updateRes = await request(app)
+      .put(`/api/admin/engineering-cases/${id}`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({ titleZh: '測試工程案例更新', featured: true })
+    expect(updateRes.status).toBe(200)
+    expect(updateRes.body.titleZh).toBe('測試工程案例更新')
+    expect(updateRes.body.featured).toBe(true)
+
+    const deleteRes = await request(app)
+      .delete(`/api/admin/engineering-cases/${id}`)
+      .set('Authorization', `Bearer ${token}`)
+    expect(deleteRes.status).toBe(204)
+
+    const afterDeleteRes = await request(app).get(`/api/engineering-cases/${validEngineeringCasePayload.slug}`)
+    expect(afterDeleteRes.status).toBe(404)
+  })
+
+  it('rejects creating a duplicate slug', async () => {
+    const firstRes = await request(app)
+      .post('/api/admin/engineering-cases')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ ...validEngineeringCasePayload, slug: 'duplicate-case-slug' })
+    expect(firstRes.status).toBe(201)
+    const id = firstRes.body.id as number
+
+    const duplicateRes = await request(app)
+      .post('/api/admin/engineering-cases')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ ...validEngineeringCasePayload, slug: 'duplicate-case-slug' })
+    expect(duplicateRes.status).toBe(409)
+
+    await request(app).delete(`/api/admin/engineering-cases/${id}`).set('Authorization', `Bearer ${token}`)
+  })
+})
+
+describe('admin certification CRUD', () => {
+  it('rejects creation with missing required fields', async () => {
+    const res = await request(app)
+      .post('/api/admin/certifications')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ nameZh: '測試證照' })
+    expect(res.status).toBe(400)
+  })
+
+  it('creates, updates, is visible on the public API, and deletes a certification', async () => {
+    const createRes = await request(app)
+      .post('/api/admin/certifications')
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        nameZh: '測試證照',
+        nameEn: 'Test Certification',
+        issuerZh: '測試機構',
+        issuerEn: 'Test Issuer',
+        sortOrder: 10,
+      })
+    expect(createRes.status).toBe(201)
+    const id = createRes.body.id as number
+
+    const publicRes = await request(app).get('/api/certifications')
+    expect(publicRes.body.some((item: { nameZh: string }) => item.nameZh === '測試證照')).toBe(true)
+
+    const updateRes = await request(app)
+      .put(`/api/admin/certifications/${id}`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({ nameZh: '測試證照更新' })
+    expect(updateRes.status).toBe(200)
+    expect(updateRes.body.nameZh).toBe('測試證照更新')
+
+    const deleteRes = await request(app)
+      .delete(`/api/admin/certifications/${id}`)
+      .set('Authorization', `Bearer ${token}`)
+    expect(deleteRes.status).toBe(204)
+
+    const afterDeleteRes = await request(app).get('/api/certifications')
+    expect(afterDeleteRes.body.some((item: { id: number }) => item.id === id)).toBe(false)
+  })
 })
 
 describe('admin avatar upload', () => {

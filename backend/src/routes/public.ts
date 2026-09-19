@@ -1,6 +1,6 @@
 import { Router } from 'express'
 import { prisma } from '../db.js'
-import { parseContactLinks, parseStringArray } from '../utils/json.js'
+import { parseArchitectureSteps, parseContactLinks, parseStringArray } from '../utils/json.js'
 
 export const publicRouter = Router()
 
@@ -45,4 +45,33 @@ publicRouter.get('/projects', async (_req, res) => {
       techStack: parseStringArray(project.techStack),
     })),
   )
+})
+
+publicRouter.get('/engineering-cases', async (_req, res) => {
+  const cases = await prisma.engineeringCase.findMany({ orderBy: { sortOrder: 'asc' } })
+  res.json(
+    cases.map((engineeringCase) => ({
+      ...engineeringCase,
+      architecture: parseArchitectureSteps(engineeringCase.architecture),
+      techStack: parseStringArray(engineeringCase.techStack),
+    })),
+  )
+})
+
+publicRouter.get('/engineering-cases/:slug', async (req, res) => {
+  const engineeringCase = await prisma.engineeringCase.findUnique({ where: { slug: req.params.slug } })
+  if (!engineeringCase) {
+    res.status(404).json({ error: '找不到指定的工程案例。' })
+    return
+  }
+  res.json({
+    ...engineeringCase,
+    architecture: parseArchitectureSteps(engineeringCase.architecture),
+    techStack: parseStringArray(engineeringCase.techStack),
+  })
+})
+
+publicRouter.get('/certifications', async (_req, res) => {
+  const certifications = await prisma.certification.findMany({ orderBy: { sortOrder: 'asc' } })
+  res.json(certifications)
 })
