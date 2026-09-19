@@ -206,9 +206,25 @@ npm run cf:dev
 - **未部署、未設定 DNS**：`npm run cf:deploy` 目前不應執行。
 - **`/projects`、`/about` 不是路由**：它們是首頁的錨點（`#projects`、`#about`，見 `frontend/src/components/AppNav.vue`）。router 實際只註冊了 `/`、`/admin/login`、`/admin` 三條路由，且**沒有 catch-all**。因此直接開啟 `/projects` 會得到 200 + `index.html`（不是 404），但 router 找不到對應路由 → 畫面空白。若需要讓未知路徑導回首頁，須在 `frontend/src/router/index.ts` 加入 catch-all 路由，屬前端行為調整。
 
+### 8. 一鍵部署腳本 `deploy.ps1`
+
+專案根目錄提供 `deploy.ps1`，在確認上述前置設定已就緒後，可於根目錄執行：
+
+```powershell
+.\deploy.ps1
+```
+
+一次完成 frontend build 並部署同一個 Cloudflare Worker（frontend static assets + 目前已遷移的 `/api/health`，其餘 `/api/*` 維持既有 501 行為）。腳本流程：
+
+1. Preflight（fail-fast，任一項失敗會顯示明確錯誤訊息與建議處理方式並以非 0 結束）：Node.js、npm、Wrangler 是否可執行、`npx wrangler whoami` 是否已登入 Cloudflare、`wrangler.jsonc` 是否存在、`d1_databases` 的 `database_id` 是否已是正式值（非空值、非佔位全零 UUID、非明顯範例字樣）。
+2. 全部 Preflight 通過後，呼叫既有的 `npm run cf:deploy`（`npm run build && wrangler deploy`），不會另外重複一份 Wrangler 部署設定。
+3. 依 `npm run cf:deploy` 的結束碼輸出成功或失敗摘要；失敗時腳本以非 0 結束碼結束。
+
+`deploy.ps1` **不會**自動執行 Cloudflare 登入、建立 D1 database、建立 production 資源或修改 Secret ——這些屬於初始化 / provisioning，若尚未完成，腳本會在對應 Preflight 階段中止並提示應執行的指令（例如 `npx wrangler login`、`npx wrangler d1 create idv-web`）。
+
 ## 六、正式環境部署建議
 
-本專案僅提供部署建議，未包含實際部署腳本執行。
+本專案僅提供部署建議，未包含實際部署腳本執行（此處指第五章之外、以 Docker Compose / 雲端主機為前提的替代部署方式；Cloudflare Workers 的實際部署腳本見上方第 5.8 節 `deploy.ps1`）。
 
 ### 1. 容器化（Docker Compose）
 
