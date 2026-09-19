@@ -27,4 +27,24 @@ describe('seed data', () => {
     expect(projectCount).toBe(1)
     expect(adminCount).toBe(1)
   })
+
+  it('populates at least one featured engineering case and one certification', async () => {
+    const [engineeringCaseCount, certificationCount, featuredCase] = await Promise.all([
+      prisma.engineeringCase.count(),
+      prisma.certification.count(),
+      prisma.engineeringCase.findUnique({ where: { slug: 'taskflow-multi-agent-pipeline' } }),
+    ])
+
+    expect(engineeringCaseCount).toBeGreaterThanOrEqual(1)
+    expect(certificationCount).toBeGreaterThanOrEqual(1)
+    expect(featuredCase).toBeTruthy()
+    expect(featuredCase?.featured).toBe(true)
+    expect(featuredCase?.titleZh).toBeTruthy()
+    expect(featuredCase?.titleEn).toBeTruthy()
+  })
+
+  it('marks the seeded project as featured', async () => {
+    const featuredProject = await prisma.project.findFirst({ where: { featured: true } })
+    expect(featuredProject).toBeTruthy()
+  })
 })
