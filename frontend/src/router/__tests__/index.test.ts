@@ -24,4 +24,10 @@ describe('router auth guard', () => {
     await router.push('/admin/login')
     expect(router.currentRoute.value.name).toBe('admin-login')
   })
+
+  it('resolves /cases/:slug to the case detail route without requiring auth', async () => {
+    await router.push('/cases/taskflow-multi-agent-pipeline')
+    expect(router.currentRoute.value.name).toBe('case-detail')
+    expect(router.currentRoute.value.params.slug).toBe('taskflow-multi-agent-pipeline')
+  })
 })
