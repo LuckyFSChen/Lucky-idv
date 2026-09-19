@@ -28,7 +28,9 @@ const reset = process.argv.includes('--reset')
 /** SQL 字面值：null / 數字 / 日期 / 字串。字串中的單引號以 '' 跳脫。 */
 function lit(value: unknown): string {
   if (value === null || value === undefined) return 'NULL'
-  if (value instanceof Date) return String(value.getTime())
+  if (value instanceof Date) {
+    return `'${value.toISOString().replace(/'/g, "''")}'`
+  }
   if (typeof value === 'number') return Number.isFinite(value) ? String(value) : 'NULL'
   if (typeof value === 'boolean') return value ? '1' : '0'
   return `'${String(value).replace(/'/g, "''")}'`
