@@ -24,18 +24,16 @@ async function main() {
     data: {
       displayName: 'Lucky',
       preferredName: 'Lucky',
-      titleZh: 'PHP / Laravel 後端工程師',
-      titleEn: 'Backend Engineer specializing in PHP / Laravel',
+      titleZh: 'Backend & System Engineer · PHP / Laravel · E-commerce · System Integration · AI Automation',
+      titleEn: 'Backend & System Engineer · PHP / Laravel · E-commerce · System Integration · AI Automation',
       introZh:
-        '我是 Lucky，一名以 PHP / Laravel 為核心的後端軟體工程師，具備電商平台、多國站點、API、資料庫與系統整合開發經驗。\n\n' +
-        '過去曾參與 Magento 電商系統開發與維護，處理付款、物流、會員、訂單、第三方 API、多國站點與效能優化等功能。目前持續投入 Laravel、系統架構、AI 輔助開發及獨立產品開發。\n\n' +
-        '除了軟體工程，我也對遊戲開發與產品設計有興趣，曾使用 Unreal Engine、Godot 等工具進行遊戲專案規劃與開發。\n\n' +
-        '我偏好從實際需求出發，重視系統可維護性、資料結構、效能、開發效率，以及將複雜問題拆解成可執行方案。',
+        '專注於後端系統、電商平台、第三方服務整合與工程自動化，具備多國電商、支付與物流串接、Production Debugging，以及 AI Engineering Workflow 設計經驗。\n\n' +
+        '面對一個新系統，我習慣先理解真正的問題與情境（Understand），再把需求轉換成清楚的資料模型（Model），接著進行架構與流程設計（Design）。設計確定後動手實作（Implement），並透過測試與驗收持續驗證正確性（Validate），確保交付到生產環境時是可控、可觀察的（Deploy）。上線後我會主動追蹤異常、定位根因（Debug），並把每一次修正回饋到下一輪的設計與流程中，讓系統與開發流程持續變得更穩定、更好維護（Improve）。\n\n' +
+        '這套 Understand → Model → Design → Implement → Validate → Deploy → Debug → Improve 的循環，是我處理電商後端、跨系統整合與工程自動化問題時一貫的思考方式，而不只是單一次性的修 bug 或加功能。',
       introEn:
-        "I'm Lucky, a backend software engineer centered on PHP / Laravel, with experience across e-commerce platforms, multi-region storefronts, APIs, databases, and system integration.\n\n" +
-        'I have worked on the development and maintenance of Magento e-commerce systems, handling payments, logistics, membership, orders, third-party APIs, multi-region storefronts, and performance optimization. I continue to invest in Laravel, system architecture, AI-assisted development, and independent product development.\n\n' +
-        "Beyond software engineering, I'm also interested in game development and product design, and have used tools such as Unreal Engine and Godot for game project planning and development.\n\n" +
-        'I prefer to start from real-world requirements, valuing system maintainability, data structure, performance, development efficiency, and breaking complex problems down into actionable solutions.',
+        'Focused on backend systems, e-commerce platforms, third-party service integration, and engineering automation, with hands-on experience across multi-region e-commerce, payment and logistics integrations, production debugging, and AI engineering workflow design.\n\n' +
+        'When approaching a new system, I start by understanding the real problem and context (Understand), then translate requirements into a clear data model (Model) before moving into architecture and process design (Design). Once the design is settled, I implement it (Implement) and continuously verify correctness through testing and acceptance checks (Validate), so that what reaches production is controlled and observable (Deploy). After release, I actively track anomalies and trace them to root cause (Debug), feeding each fix back into the next round of design and process so the system and the workflow itself keep getting more stable and maintainable (Improve).\n\n' +
+        'This Understand → Model → Design → Implement → Validate → Deploy → Debug → Improve loop is how I consistently approach e-commerce backend work, cross-system integration, and engineering automation problems, rather than treating each fix or feature as a one-off task.',
       avatarUrl: null,
       contactEmail: null,
       contactLinks: null,
