@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted } from 'vue'
+import { computed, onMounted, onUnmounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import ArchitectureFlow from '@/components/ArchitectureFlow.vue'
 import AppFooter from '@/components/AppFooter.vue'
@@ -7,6 +7,11 @@ import AppNav from '@/components/AppNav.vue'
 import { uiText } from '@/i18n/ui'
 import { useLocaleStore } from '@/stores/locale'
 import { usePortfolioStore } from '@/stores/portfolio'
+import { setDocumentTitle, setMetaTag } from '@/utils/head'
+
+const DEFAULT_TITLE = 'Lucky | Backend & System Engineer'
+const DEFAULT_DESCRIPTION =
+  'Backend & System Engineer specializing in PHP, Laravel, e-commerce, system integration, AI automation and engineering workflows.'
 
 const route = useRoute()
 const portfolio = usePortfolioStore()
@@ -23,6 +28,25 @@ onMounted(() => {
   }
 })
 
+watch(
+  engineeringCase,
+  (item) => {
+    if (!item) return
+    setDocumentTitle(`${item.titleEn} | Lucky`)
+    setMetaTag('name', 'description', item.summaryEn)
+    setMetaTag('property', 'og:title', `${item.titleEn} | Lucky`)
+    setMetaTag('property', 'og:description', item.summaryEn)
+  },
+  { immediate: true },
+)
+
+onUnmounted(() => {
+  setDocumentTitle(DEFAULT_TITLE)
+  setMetaTag('name', 'description', DEFAULT_DESCRIPTION)
+  setMetaTag('property', 'og:title', DEFAULT_TITLE)
+  setMetaTag('property', 'og:description', DEFAULT_DESCRIPTION)
+})
+
 function pick(zh: string, en: string) {
   return localeStore.locale === 'zh' ? zh : en
 }
@@ -37,96 +61,127 @@ function pick(zh: string, en: string) {
       class="case-detail"
     >
       <div class="container">
-        <p class="case-detail__category">
-          {{ pick(engineeringCase.categoryZh, engineeringCase.categoryEn) }}
-        </p>
-        <h1 class="case-detail__title">
-          {{ pick(engineeringCase.titleZh, engineeringCase.titleEn) }}
-        </h1>
+        <article class="case-detail__article">
+          <header
+            v-motion-fade-visible-once
+            class="case-detail__header"
+          >
+            <p class="case-detail__category">
+              {{ pick(engineeringCase.categoryZh, engineeringCase.categoryEn) }}
+            </p>
+            <h1 class="case-detail__title">
+              {{ pick(engineeringCase.titleZh, engineeringCase.titleEn) }}
+            </h1>
+          </header>
 
-        <section class="case-detail__section">
-          <h2>{{ t.overview }}</h2>
-          <p>{{ pick(engineeringCase.summaryZh, engineeringCase.summaryEn) }}</p>
-        </section>
+          <section
+            v-motion-fade-visible-once
+            class="case-detail__section"
+          >
+            <h2>{{ t.overview }}</h2>
+            <p>{{ pick(engineeringCase.summaryZh, engineeringCase.summaryEn) }}</p>
+          </section>
 
-        <section class="case-detail__section">
-          <h2>{{ t.problem }}</h2>
-          <p>{{ pick(engineeringCase.problemZh, engineeringCase.problemEn) }}</p>
-        </section>
+          <section
+            v-motion-fade-visible-once
+            class="case-detail__section"
+          >
+            <h2>{{ t.problem }}</h2>
+            <p>{{ pick(engineeringCase.problemZh, engineeringCase.problemEn) }}</p>
+          </section>
 
-        <section class="case-detail__section">
-          <h2>{{ t.context }}</h2>
-          <p>{{ pick(engineeringCase.contextZh, engineeringCase.contextEn) }}</p>
-        </section>
+          <section
+            v-motion-fade-visible-once
+            class="case-detail__section"
+          >
+            <h2>{{ t.context }}</h2>
+            <p>{{ pick(engineeringCase.contextZh, engineeringCase.contextEn) }}</p>
+          </section>
 
-        <section class="case-detail__section">
-          <h2>{{ t.investigation }}</h2>
-          <p>{{ pick(engineeringCase.investigationZh, engineeringCase.investigationEn) }}</p>
-        </section>
+          <section
+            v-motion-fade-visible-once
+            class="case-detail__section"
+          >
+            <h2>{{ t.investigation }}</h2>
+            <p>{{ pick(engineeringCase.investigationZh, engineeringCase.investigationEn) }}</p>
+          </section>
 
-        <section class="case-detail__section">
-          <h2>{{ t.solution }}</h2>
-          <p>{{ pick(engineeringCase.solutionZh, engineeringCase.solutionEn) }}</p>
-        </section>
+          <section
+            v-motion-fade-visible-once
+            class="case-detail__section"
+          >
+            <h2>{{ t.solution }}</h2>
+            <p>{{ pick(engineeringCase.solutionZh, engineeringCase.solutionEn) }}</p>
+          </section>
 
-        <section
-          v-if="engineeringCase.architecture.length"
-          class="case-detail__section"
-        >
-          <h2>{{ t.architecture }}</h2>
-          <ArchitectureFlow :steps="engineeringCase.architecture" />
-        </section>
+          <section
+            v-if="engineeringCase.architecture.length"
+            v-motion-fade-visible-once
+            class="case-detail__section"
+          >
+            <h2>{{ t.architecture }}</h2>
+            <ArchitectureFlow :steps="engineeringCase.architecture" />
+          </section>
 
-        <section class="case-detail__section">
-          <h2>{{ t.validation }}</h2>
-          <p>{{ pick(engineeringCase.validationZh, engineeringCase.validationEn) }}</p>
-        </section>
+          <section
+            v-motion-fade-visible-once
+            class="case-detail__section"
+          >
+            <h2>{{ t.validation }}</h2>
+            <p>{{ pick(engineeringCase.validationZh, engineeringCase.validationEn) }}</p>
+          </section>
 
-        <section class="case-detail__section">
-          <h2>{{ t.result }}</h2>
-          <p>{{ pick(engineeringCase.resultZh, engineeringCase.resultEn) }}</p>
-        </section>
+          <section
+            v-motion-fade-visible-once
+            class="case-detail__section"
+          >
+            <h2>{{ t.result }}</h2>
+            <p>{{ pick(engineeringCase.resultZh, engineeringCase.resultEn) }}</p>
+          </section>
 
-        <section
-          v-if="engineeringCase.techStack.length"
-          class="case-detail__section"
-        >
-          <h2>{{ t.technology }}</h2>
-          <div class="case-detail__tech">
-            <span
-              v-for="tech in engineeringCase.techStack"
-              :key="tech"
-              class="case-detail__tech-tag"
-            >{{ tech }}</span>
-          </div>
-        </section>
+          <section
+            v-if="engineeringCase.techStack.length"
+            v-motion-fade-visible-once
+            class="case-detail__section"
+          >
+            <h2>{{ t.technology }}</h2>
+            <div class="case-detail__tech">
+              <span
+                v-for="tech in engineeringCase.techStack"
+                :key="tech"
+                class="case-detail__tech-tag"
+              >{{ tech }}</span>
+            </div>
+          </section>
 
-        <section
-          v-if="engineeringCase.projectUrl || engineeringCase.githubUrl"
-          class="case-detail__section"
-        >
-          <h2>{{ t.relatedProject }}</h2>
-          <div class="case-detail__links">
-            <a
-              v-if="engineeringCase.projectUrl"
-              :href="engineeringCase.projectUrl"
-              target="_blank"
-              rel="noopener"
-              class="case-detail__link"
-            >
-              {{ t.viewProject }} →
-            </a>
-            <a
-              v-if="engineeringCase.githubUrl"
-              :href="engineeringCase.githubUrl"
-              target="_blank"
-              rel="noopener"
-              class="case-detail__link"
-            >
-              {{ t.viewGithub }} →
-            </a>
-          </div>
-        </section>
+          <section
+            v-if="engineeringCase.projectUrl || engineeringCase.githubUrl"
+            v-motion-fade-visible-once
+            class="case-detail__section"
+          >
+            <h2>{{ t.relatedProject }}</h2>
+            <div class="case-detail__links">
+              <a
+                v-if="engineeringCase.projectUrl"
+                :href="engineeringCase.projectUrl"
+                target="_blank"
+                rel="noopener"
+                class="case-detail__link"
+              >
+                {{ t.viewProject }} →
+              </a>
+              <a
+                v-if="engineeringCase.githubUrl"
+                :href="engineeringCase.githubUrl"
+                target="_blank"
+                rel="noopener"
+                class="case-detail__link"
+              >
+                {{ t.viewGithub }} →
+              </a>
+            </div>
+          </section>
+        </article>
       </div>
     </main>
 
@@ -181,12 +236,21 @@ function pick(zh: string, en: string) {
 }
 
 .page__state--error {
-  color: #c0392b;
+  color: var(--color-danger);
 }
 
 .case-detail {
   flex: 1;
-  padding-block: 3rem;
+  padding-block: var(--space-2xl);
+}
+
+.case-detail__article {
+  max-width: 720px;
+  margin-inline: auto;
+}
+
+.case-detail__header {
+  margin-bottom: var(--space-lg);
 }
 
 .case-detail__category {
@@ -199,12 +263,13 @@ function pick(zh: string, en: string) {
 
 .case-detail__title {
   margin-top: 0.5rem;
-  font-size: 2.2rem;
+  font-size: var(--text-section-heading);
   font-weight: 800;
+  line-height: 1.15;
 }
 
 .case-detail__section {
-  margin-top: 2.25rem;
+  margin-top: var(--space-xl);
 }
 
 .case-detail__section h2 {

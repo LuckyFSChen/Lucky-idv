@@ -127,6 +127,7 @@ const engineeringCases: EngineeringCase[] = [
     githubUrl: null,
     projectUrl: null,
     featured: true,
+    published: true,
     sortOrder: 0,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
@@ -242,5 +243,34 @@ describe('HomeView', () => {
     expect(certificationSection.text()).toContain('ISO 27001 主導稽核員')
     expect(certificationSection.text()).toContain('BSI')
     expect(certificationSection.text()).toContain('ISO27001-0001')
+  })
+
+  it('injects Person/WebSite/ProfilePage JSON-LD using only real profile data', async () => {
+    document
+      .querySelectorAll('script[data-jsonld]')
+      .forEach((el) => el.remove())
+
+    const wrapper = mount(HomeView, {
+      global: { plugins: [createPinia(), createTestRouter(), MotionPlugin] },
+    })
+
+    await flushPromises()
+
+    const website = document.head.querySelector('script[data-jsonld="website"]')
+    const person = document.head.querySelector('script[data-jsonld="person"]')
+    const profilePage = document.head.querySelector('script[data-jsonld="profile-page"]')
+    expect(website).not.toBeNull()
+    expect(person).not.toBeNull()
+    expect(profilePage).not.toBeNull()
+
+    const personData = JSON.parse(person!.textContent ?? '{}')
+    expect(personData['@type']).toBe('Person')
+    expect(personData.name).toBe('Lucky')
+    expect(personData.jobTitle).toBe('Backend Engineer specializing in PHP / Laravel')
+    expect(personData.email).toBe('lucky@example.com')
+    expect(personData.sameAs).toBeUndefined()
+
+    wrapper.unmount()
+    expect(document.head.querySelector('script[data-jsonld="person"]')).toBeNull()
   })
 })

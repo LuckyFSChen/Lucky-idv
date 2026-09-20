@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { adminApi, AdminApiError } from '@/api/adminClient'
 import AdminCertificationsManager from '@/components/admin/AdminCertificationsManager.vue'
 import AdminEngineeringCasesManager from '@/components/admin/AdminEngineeringCasesManager.vue'
 import AdminExperienceManager from '@/components/admin/AdminExperienceManager.vue'
@@ -9,6 +10,7 @@ import AdminProjectsManager from '@/components/admin/AdminProjectsManager.vue'
 import AdminSkillsManager from '@/components/admin/AdminSkillsManager.vue'
 import { useAdminAuthStore } from '@/stores/adminAuth'
 import { usePortfolioStore } from '@/stores/portfolio'
+import type { EngineeringCase } from '@/types/api'
 
 type Tab = 'profile' | 'skills' | 'experience' | 'projects' | 'engineering-cases' | 'certifications'
 
@@ -26,19 +28,35 @@ const authStore = useAdminAuthStore()
 const router = useRouter()
 const activeTab = ref<Tab>('profile')
 const initialLoading = ref(true)
+// 工程案例含未發布項目，公開 portfolioStore 只回傳已發布資料，
+// 後台需改用專屬的 admin 端點才能看到並管理下架中的案例。
+const engineeringCases = ref<EngineeringCase[]>([])
+
+function handleUnauthorized() {
+  authStore.logout()
+  router.push({ name: 'admin-login' })
+}
+
+async function loadEngineeringCases() {
+  try {
+    engineeringCases.value = await adminApi.listEngineeringCases(authStore.token)
+  } catch (err) {
+    if (err instanceof AdminApiError && err.status === 401) {
+      handleUnauthorized()
+      return
+    }
+    throw err
+  }
+}
 
 onMounted(async () => {
-  await portfolioStore.fetchAll()
+  await Promise.all([portfolioStore.fetchAll(), loadEngineeringCases()])
   initialLoading.value = false
 })
 
 function refresh() {
   portfolioStore.fetchAll()
-}
-
-function handleUnauthorized() {
-  authStore.logout()
-  router.push({ name: 'admin-login' })
+  loadEngineeringCases()
 }
 
 function logout() {
@@ -121,7 +139,7 @@ function logout() {
       />
       <AdminEngineeringCasesManager
         v-else-if="activeTab === 'engineering-cases'"
-        :cases="portfolioStore.engineeringCases"
+        :cases="engineeringCases"
         @refresh="refresh"
         @unauthorized="handleUnauthorized"
       />

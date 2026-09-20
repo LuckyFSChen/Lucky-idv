@@ -116,6 +116,7 @@ const engineeringCaseBaseSchema = z.object({
   githubUrl: z.string().url().nullable().optional(),
   projectUrl: z.string().url().nullable().optional(),
   featured: z.boolean().optional(),
+  published: z.boolean().optional(),
   sortOrder: z.number().int().optional(),
 })
 

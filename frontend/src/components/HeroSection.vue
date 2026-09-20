@@ -3,12 +3,18 @@ import { computed } from 'vue'
 import { resolveAssetUrl } from '@/api/client'
 import { uiText } from '@/i18n/ui'
 import { useLocaleStore } from '@/stores/locale'
+import { motionTransition, useReducedMotion } from '@/composables/useReducedMotion'
 import type { Profile } from '@/types/api'
 
 const props = defineProps<{ profile: Profile | null }>()
 
 const localeStore = useLocaleStore()
 const t = computed(() => uiText[localeStore.locale].hero)
+
+const reducedMotion = useReducedMotion()
+function reveal(duration: number, delay = 0) {
+  return motionTransition(duration, delay, reducedMotion.value)
+}
 
 const displayName = computed(() => props.profile?.preferredName ?? props.profile?.displayName ?? '')
 const title = computed(() =>
@@ -31,7 +37,7 @@ const initials = computed(() => displayName.value.slice(0, 1).toUpperCase())
       <div
         v-motion
         :initial="{ opacity: 0, y: 24 }"
-        :enter="{ opacity: 1, y: 0, transition: { duration: 500 } }"
+        :enter="{ opacity: 1, y: 0, transition: reveal(350) }"
         class="hero__avatar"
       >
         <img
@@ -48,7 +54,7 @@ const initials = computed(() => displayName.value.slice(0, 1).toUpperCase())
       <p
         v-motion
         :initial="{ opacity: 0, y: 16 }"
-        :enter="{ opacity: 1, y: 0, transition: { duration: 500, delay: 100 } }"
+        :enter="{ opacity: 1, y: 0, transition: reveal(350, 80) }"
         class="hero__eyebrow"
       >
         {{ t.eyebrow }}
@@ -57,7 +63,7 @@ const initials = computed(() => displayName.value.slice(0, 1).toUpperCase())
       <h1
         v-motion
         :initial="{ opacity: 0, y: 20 }"
-        :enter="{ opacity: 1, y: 0, transition: { duration: 550, delay: 180 } }"
+        :enter="{ opacity: 1, y: 0, transition: reveal(400, 140) }"
         class="hero__name gradient-text"
       >
         {{ displayName }}
@@ -66,7 +72,7 @@ const initials = computed(() => displayName.value.slice(0, 1).toUpperCase())
       <p
         v-motion
         :initial="{ opacity: 0, y: 16 }"
-        :enter="{ opacity: 1, y: 0, transition: { duration: 550, delay: 260 } }"
+        :enter="{ opacity: 1, y: 0, transition: reveal(350, 200) }"
         class="hero__title"
       >
         {{ title }}
@@ -75,7 +81,7 @@ const initials = computed(() => displayName.value.slice(0, 1).toUpperCase())
       <div
         v-motion
         :initial="{ opacity: 0, y: 16 }"
-        :enter="{ opacity: 1, y: 0, transition: { duration: 550, delay: 340 } }"
+        :enter="{ opacity: 1, y: 0, transition: reveal(350, 260) }"
         class="hero__actions"
       >
         <a
@@ -131,7 +137,8 @@ const initials = computed(() => displayName.value.slice(0, 1).toUpperCase())
   overflow: hidden;
   margin-bottom: 2rem;
   box-shadow: var(--shadow-card);
-  border: 4px solid rgba(255, 255, 255, 0.8);
+  border: 4px solid var(--color-surface);
+  transition: border-color var(--motion-base) var(--motion-easing);
 }
 
 .hero__avatar img {
@@ -153,14 +160,14 @@ const initials = computed(() => displayName.value.slice(0, 1).toUpperCase())
 }
 
 .hero__eyebrow {
-  font-size: 1.1rem;
+  font-size: var(--text-eyebrow);
   color: var(--color-text-secondary);
   font-weight: 500;
 }
 
 .hero__name {
   margin-top: 0.5rem;
-  font-size: clamp(3rem, 9vw, 5.5rem);
+  font-size: var(--text-hero);
   font-weight: 800;
   letter-spacing: -0.03em;
   line-height: 1.05;
@@ -168,7 +175,7 @@ const initials = computed(() => displayName.value.slice(0, 1).toUpperCase())
 
 .hero__title {
   margin-top: 1rem;
-  font-size: clamp(1.1rem, 2.2vw, 1.5rem);
+  font-size: var(--text-body);
   color: var(--color-text-secondary);
   max-width: 560px;
 }
@@ -189,7 +196,7 @@ const initials = computed(() => displayName.value.slice(0, 1).toUpperCase())
   width: 26px;
   height: 42px;
   border: 2px solid var(--color-text-secondary);
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   display: flex;
   justify-content: center;
   padding-top: 6px;
@@ -199,7 +206,7 @@ const initials = computed(() => displayName.value.slice(0, 1).toUpperCase())
 .hero__scroll span {
   width: 4px;
   height: 8px;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: var(--color-text-secondary);
   animation: hero-scroll 1.8s ease-in-out infinite;
 }

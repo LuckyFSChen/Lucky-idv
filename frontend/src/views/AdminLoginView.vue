@@ -85,7 +85,7 @@ async function handleSubmit() {
 .admin-login__card {
   width: 100%;
   max-width: 380px;
-  background: #fff;
+  background: var(--color-surface);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-card);
   padding: 2.5rem;
@@ -128,7 +128,7 @@ async function handleSubmit() {
 }
 
 .admin-login__error {
-  color: #c0392b;
+  color: var(--color-danger);
   font-size: 0.9rem;
 }
 

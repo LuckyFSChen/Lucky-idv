@@ -48,7 +48,10 @@ publicRouter.get('/projects', async (_req, res) => {
 })
 
 publicRouter.get('/engineering-cases', async (_req, res) => {
-  const cases = await prisma.engineeringCase.findMany({ orderBy: { sortOrder: 'asc' } })
+  const cases = await prisma.engineeringCase.findMany({
+    where: { published: true },
+    orderBy: { sortOrder: 'asc' },
+  })
   res.json(
     cases.map((engineeringCase) => ({
       ...engineeringCase,
@@ -59,7 +62,9 @@ publicRouter.get('/engineering-cases', async (_req, res) => {
 })
 
 publicRouter.get('/engineering-cases/:slug', async (req, res) => {
-  const engineeringCase = await prisma.engineeringCase.findUnique({ where: { slug: req.params.slug } })
+  const engineeringCase = await prisma.engineeringCase.findFirst({
+    where: { slug: req.params.slug, published: true },
+  })
   if (!engineeringCase) {
     res.status(404).json({ error: '找不到指定的工程案例。' })
     return

@@ -101,7 +101,7 @@ const experiences = computed(() => props.experiences)
 .timeline__item {
   position: relative;
   padding-left: 2.25rem;
-  padding-bottom: 2.5rem;
+  padding-bottom: var(--space-xl);
 }
 
 .timeline__item:not(:last-child)::before {
@@ -111,7 +111,7 @@ const experiences = computed(() => props.experiences)
   top: 8px;
   bottom: -0.5rem;
   width: 2px;
-  background: var(--color-border);
+  background: var(--color-border-strong);
 }
 
 .timeline__marker {
@@ -145,19 +145,20 @@ const experiences = computed(() => props.experiences)
 }
 
 .timeline__summary {
-  margin-top: 0.9rem;
+  margin-top: var(--space-sm);
   line-height: 1.75;
   color: var(--color-text);
+  font-size: var(--text-body-sm);
 }
 
 .timeline__highlights {
-  margin-top: 0.9rem;
+  margin-top: var(--space-sm);
   padding-left: 1.1rem;
   display: flex;
   flex-direction: column;
   gap: 0.4rem;
   color: var(--color-text-secondary);
-  font-size: 0.92rem;
+  font-size: var(--text-body-sm);
   line-height: 1.6;
 }
 </style>

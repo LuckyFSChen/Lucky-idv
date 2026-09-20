@@ -2,11 +2,20 @@ export const uiText = {
   zh: {
     nav: {
       about: '自我介紹',
-      skills: '專業能力',
+      selectedWork: '精選作品',
+      engineeringCases: '工程案例',
+      skills: '技術棧',
       experience: '工作經歷',
       projects: '專案作品',
       contact: '聯絡方式',
       langSwitch: 'EN',
+      langSwitchAriaLabel: '切換語言為 English',
+      themeLabel: '切換主題',
+      themeLight: '淺色',
+      themeDark: '深色',
+      themeSystem: '跟隨系統',
+      menuOpen: '開啟選單',
+      menuClose: '關閉選單',
     },
     hero: {
       eyebrow: '你好，我是',
@@ -85,11 +94,20 @@ export const uiText = {
   en: {
     nav: {
       about: 'About',
-      skills: 'Skills',
+      selectedWork: 'Work',
+      engineeringCases: 'Cases',
+      skills: 'Stack',
       experience: 'Experience',
       projects: 'Projects',
       contact: 'Contact',
       langSwitch: '中文',
+      langSwitchAriaLabel: 'Switch language to 中文',
+      themeLabel: 'Toggle theme',
+      themeLight: 'Light',
+      themeDark: 'Dark',
+      themeSystem: 'System',
+      menuOpen: 'Open menu',
+      menuClose: 'Close menu',
     },
     hero: {
       eyebrow: "Hi, I'm",

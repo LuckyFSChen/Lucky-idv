@@ -19,7 +19,8 @@ function description(item: Certification) {
   return localeStore.locale === 'zh' ? item.descriptionZh : item.descriptionEn
 }
 
-const certifications = computed(() => props.certifications)
+// 僅呈現具備正式發證日期（issuedAt）的已驗證項目，避免在發證資訊確認前展示未證實的證照聲稱。
+const certifications = computed(() => props.certifications.filter((item) => !!item.issuedAt))
 </script>
 
 <template>
@@ -99,13 +100,14 @@ const certifications = computed(() => props.certifications)
 }
 
 .certification__card {
-  background: #fff;
+  background: var(--color-surface);
   border-radius: var(--radius-lg);
   border: 1px solid var(--color-border);
   padding: 1.5rem;
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+  transition: border-color var(--motion-base) var(--motion-easing);
 }
 
 .certification__name {

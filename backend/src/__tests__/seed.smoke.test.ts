@@ -58,6 +58,22 @@ describe('seed data', () => {
     expect(cases.length).toBe(slugs.length)
   })
 
+  it('marks all engineering cases as published by default', async () => {
+    const unpublishedCount = await prisma.engineeringCase.count({ where: { published: false } })
+    expect(unpublishedCount).toBe(0)
+  })
+
+  it('marks the three Bento-featured engineering cases (Git Repository Topology, Deterministic Deployment Validation, Multi-region E-commerce Integration) as featured', async () => {
+    const bentoSlugs = [
+      'git-repository-topology-detection',
+      'deterministic-deployment-validation',
+      'multi-region-ecommerce-integration',
+    ]
+    const bentoCases = await prisma.engineeringCase.findMany({ where: { slug: { in: bentoSlugs } } })
+    expect(bentoCases.length).toBe(bentoSlugs.length)
+    expect(bentoCases.every((item) => item.featured)).toBe(true)
+  })
+
   it('marks the seeded project as featured', async () => {
     const featuredProject = await prisma.project.findFirst({ where: { featured: true } })
     expect(featuredProject).toBeTruthy()
