@@ -1,21 +1,26 @@
+/**
+ * Cloudflare Worker 進入點。
+ *
+ * 路由順序（wrangler.jsonc 的 run_worker_first 已確保 /api/* 與 /uploads/*
+ * 先進到這裡，不會被 Static Assets 的 SPA fallback 吃掉）：
+ *
+ *   /api/health          Worker 原生
+ *   /api/* /uploads/*    本機開發若設了 API_PROXY_ORIGIN，一律轉發給 Express
+ *   /uploads/*           從 R2 讀取（未設定 binding 時為 404）
+ *   /api/admin/*         管理後台（見 routes/admin.ts）
+ *   公開 GET API         見 routes/public.ts
+ *   其餘 /api/*          501（明確告知尚未遷移，而非靜默失敗）
+ *   其他                 404（靜態檔已由 assets 處理）
+ */
+
 import { getPrisma } from '../backend/src/db/client.js'
-import { parseContactLinks, parseStringArray } from '../backend/src/utils/json.js'
+import type { Env } from './env.js'
+import { json, jsonError } from './lib/http.js'
+import { handleAdminApi, isAdminApiPath } from './routes/admin.js'
+import { handlePublicApi, isPublicApiPath } from './routes/public.js'
+import { handleUploads } from './routes/uploads.js'
 
-export interface Env {
-  DB?: D1Database
-  API_PROXY_ORIGIN?: string
-}
-
-const JSON_HEADERS = {
-  'content-type': 'application/json; charset=utf-8',
-} as const
-
-function json(body: unknown, status = 200): Response {
-  return new Response(JSON.stringify(body), {
-    status,
-    headers: JSON_HEADERS,
-  })
-}
+export type { Env }
 
 export default {
   async fetch(request, env) {
@@ -36,104 +41,41 @@ export default {
       return fetch(new Request(target, request))
     }
 
-    // Production uploads 尚未搬到 R2
     if (isUploads) {
-      return new Response('Not Found', { status: 404 })
+      return handleUploads(request, env, pathname)
     }
 
-    // 後面的 public API 都需要 D1
-    if (
-      request.method === 'GET' &&
-      (
-        pathname === '/api/profile' ||
-        pathname === '/api/skills' ||
-        pathname === '/api/experience' ||
-        pathname === '/api/projects'
-      )
-    ) {
+    const isAdmin = isAdminApiPath(pathname)
+    const isPublic = isPublicApiPath(request.method, pathname)
+
+    if (isAdmin || isPublic) {
       if (!env.DB) {
-        return json({ error: 'D1 database binding DB is not configured.' }, 500)
+        return jsonError('D1 database binding DB is not configured.', 500)
       }
 
       try {
         const prisma = getPrisma(env)
 
-        if (pathname === '/api/profile') {
-          const profile = await prisma.profile.findFirst({
-            orderBy: { id: 'asc' },
-          })
-
-          if (!profile) {
-            return json({ error: '找不到個人資料' }, 404)
-          }
-
-          return json({
-            ...profile,
-            contactLinks: parseContactLinks(profile.contactLinks),
-          })
+        if (isAdmin) {
+          return await handleAdminApi(request, env, prisma, pathname)
         }
 
-        if (pathname === '/api/skills') {
-          const categories = await prisma.skillCategory.findMany({
-            orderBy: { sortOrder: 'asc' },
-            include: {
-              skills: {
-                orderBy: { sortOrder: 'asc' },
-              },
-            },
-          })
-
-          return json(categories)
-        }
-
-        if (pathname === '/api/experience') {
-          const experiences = await prisma.experience.findMany({
-            orderBy: { sortOrder: 'asc' },
-          })
-
-          return json(
-            experiences.map((experience) => ({
-              ...experience,
-              highlightsZh: parseStringArray(experience.highlightsZh),
-              highlightsEn: parseStringArray(experience.highlightsEn),
-            })),
-          )
-        }
-
-        if (pathname === '/api/projects') {
-          const projects = await prisma.project.findMany({
-            orderBy: { sortOrder: 'asc' },
-          })
-
-          return json(
-            projects.map((project) => ({
-              ...project,
-              highlightsZh: parseStringArray(project.highlightsZh),
-              highlightsEn: parseStringArray(project.highlightsEn),
-              techStack: parseStringArray(project.techStack),
-            })),
-          )
-        }
+        const response = await handlePublicApi(prisma, pathname)
+        if (response) return response
       } catch (error) {
-        console.error('Public API failed:', error)
+        // 未預期的錯誤：記錄細節（Workers observability 已開啟），
+        // 但只回傳概略訊息給客戶端。
+        console.error(`${isAdmin ? 'Admin' : 'Public'} API failed:`, error)
 
-        return json(
-          {
-            error: '資料載入失敗',
-          },
-          500,
-        )
+        return isAdmin
+          ? jsonError('伺服器發生未預期的錯誤。', 500)
+          : jsonError('資料載入失敗', 500)
       }
     }
 
-    // 其他尚未搬移的 API，例如 /api/admin/*
+    // 其他尚未搬移或不存在的 API
     if (isApi) {
-      return json(
-        {
-          error: '此 API 尚未遷移至 Cloudflare Workers。',
-        },
-        501,
-      )
+      return jsonError('此 API 尚未遷移至 Cloudflare Workers。', 501)
     }
 
     return new Response('Not Found', { status: 404 })

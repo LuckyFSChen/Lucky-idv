@@ -2,6 +2,7 @@
 import { reactive, ref, watch } from 'vue'
 import { adminApi, AdminApiError } from '@/api/adminClient'
 import { resolveAssetUrl } from '@/api/client'
+import AvatarCropperDialog from '@/components/admin/AvatarCropperDialog.vue'
 import { useAdminAuthStore } from '@/stores/adminAuth'
 import type { ContactLink, Profile } from '@/types/api'
 
@@ -40,6 +41,11 @@ const saving = ref(false)
 const uploading = ref(false)
 const message = ref<{ type: 'success' | 'error'; text: string } | null>(null)
 const avatarPreview = ref<string | null>(null)
+/** 待裁切的原始檔案；不為 null 時顯示裁切對話框。 */
+const pendingAvatarFile = ref<File | null>(null)
+
+/** 原始檔案的大小上限。裁切後一律輸出 512×512，因此這裡可以放寬，只擋明顯過大的檔案。 */
+const MAX_SOURCE_SIZE_MB = 20
 
 function handleError(err: unknown) {
   if (err instanceof AdminApiError && err.status === 401) {
@@ -80,12 +86,29 @@ async function handleSubmit() {
   }
 }
 
-async function handleAvatarChange(event: Event) {
+function handleAvatarChange(event: Event) {
   const input = event.target as HTMLInputElement
   const file = input.files?.[0]
+  // 先清掉 input，否則選擇同一個檔案兩次不會再觸發 change。
+  input.value = ''
   if (!file) return
 
+  if (file.size > MAX_SOURCE_SIZE_MB * 1024 * 1024) {
+    message.value = { type: 'error', text: `圖片檔案過大，請選擇 ${MAX_SOURCE_SIZE_MB} MB 以內的圖片。` }
+    return
+  }
+
+  message.value = null
+  // 不直接上傳，先進裁切對話框；實際上傳由 handleAvatarCropped 處理。
+  pendingAvatarFile.value = file
+}
+
+async function handleAvatarCropped(file: File) {
+  pendingAvatarFile.value = null
+
+  if (avatarPreview.value) URL.revokeObjectURL(avatarPreview.value)
   avatarPreview.value = URL.createObjectURL(file)
+
   uploading.value = true
   message.value = null
   try {
@@ -96,7 +119,6 @@ async function handleAvatarChange(event: Event) {
     handleError(err)
   } finally {
     uploading.value = false
-    input.value = ''
   }
 }
 </script>
@@ -127,6 +149,13 @@ async function handleAvatarChange(event: Event) {
         >
       </label>
     </div>
+
+    <AvatarCropperDialog
+      v-if="pendingAvatarFile"
+      :file="pendingAvatarFile"
+      @cancel="pendingAvatarFile = null"
+      @apply="handleAvatarCropped"
+    />
 
     <form
       class="admin-form"

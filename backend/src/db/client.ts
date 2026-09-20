@@ -19,6 +19,15 @@ import type { D1Database } from '@cloudflare/workers-types'
 import { PrismaD1 } from '@prisma/adapter-d1'
 import { PrismaClient } from '@prisma/client'
 
+/**
+ * 供 Worker 端取得型別用。
+ *
+ * worker/ 目錄下的檔案無法直接 `import type { PrismaClient } from '@prisma/client'`
+ * —— @prisma/client 安裝在 backend/node_modules，模組解析從 worker/ 找不到它。
+ * 既然本模組已經是取得 client 的唯一入口，型別也一併由此出口。
+ */
+export type { PrismaClient }
+
 /** Worker 的 env 中與資料庫有關的部分（見 wrangler.jsonc 的 d1_databases binding）。 */
 export interface DatabaseEnv {
   DB?: D1Database

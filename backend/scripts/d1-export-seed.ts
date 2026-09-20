@@ -12,9 +12,15 @@
  *     `d1-admin-sql.ts` 依環境變數另外產生，絕不寫死在版控檔案裡。
  *   - 預設**非破壞性**：只產生 INSERT。要清空既有資料必須顯式加 `--reset`。
  *
- * ⚠️ DateTime 欄位一律輸出為 **整數（epoch 毫秒）**，與 Prisma SQLite connector
- *    的實際儲存格式一致（已對 dev.db 實測確認 typeof = integer）。
- *    若改輸出 ISO 字串，Prisma 讀回時會解析失敗。
+ * ⚠️ DateTime 欄位一律輸出為 **ISO-8601 字串**（見下方 lit()，走 toISOString()）。
+ *
+ *    這段註解原本寫的是「必須輸出整數 epoch 毫秒，否則 Prisma 讀回時會解析失敗」，
+ *    與實際程式碼相反，而且對 D1 來說是錯的 —— 那是「本機 SQLite 檔案 + Prisma
+ *    原生 connector」的儲存慣例。走 @prisma/adapter-d1 時要的是 ISO 字串：
+ *    寫整數毫秒會在讀取時炸成
+ *      Inconsistent column data: Could not convert value ... to type `DateTime`。
+ *
+ *    d1-admin-sql.ts 曾照這段錯誤註解寫成整數，導致後台登入回 500（已修）。
  */
 
 import { mkdirSync, writeFileSync } from 'node:fs'

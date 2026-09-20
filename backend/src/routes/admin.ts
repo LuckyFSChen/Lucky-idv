@@ -1,8 +1,5 @@
-import bcrypt from 'bcryptjs'
-import { Prisma } from '@prisma/client'
 import { Router } from 'express'
 import rateLimit from 'express-rate-limit'
-import { z } from 'zod'
 import { prisma } from '../db.js'
 import { requireAuth } from '../middleware/requireAuth.js'
 import { avatarUpload } from '../middleware/upload.js'
@@ -22,8 +19,23 @@ import {
   skillCreateSchema,
   skillUpdateSchema,
 } from '../schemas/admin.js'
+import {
+  isUniqueConstraintError,
+  serializeEngineeringCase,
+  serializeExperience,
+  serializeProject,
+  toCertificationCreateData,
+  toCertificationUpdateData,
+  toEngineeringCaseCreateData,
+  toEngineeringCaseUpdateData,
+  toExperienceCreateData,
+  toExperienceUpdateData,
+  toProjectCreateData,
+  toProjectUpdateData,
+} from '../utils/adminData.js'
 import { signAdminToken } from '../utils/jwt.js'
-import { parseArchitectureSteps, parseContactLinks, parseStringArray } from '../utils/json.js'
+import { parseContactLinks } from '../utils/json.js'
+import { isLegacyBcryptHash, verifyPassword } from '../utils/password.js'
 
 export const adminRouter = Router()
 
@@ -54,7 +66,16 @@ adminRouter.post('/login', loginLimiter, async (req, res) => {
     return
   }
 
-  const valid = await bcrypt.compare(password, admin.passwordHash)
+  // 舊的 bcrypt 雜湊已不再支援（Workers 上 CPU 成本過高，見 utils/password.ts）。
+  // 這種情況不是「密碼打錯」，必須給出可操作的訊息，否則會被誤判成忘記密碼。
+  if (isLegacyBcryptHash(admin.passwordHash)) {
+    res.status(500).json({
+      error: '此帳號的密碼雜湊格式已過期，請重新產生後套用到資料庫。',
+    })
+    return
+  }
+
+  const valid = await verifyPassword(password, admin.passwordHash)
   if (!valid) {
     res.status(401).json({ error: '帳號或密碼錯誤。' })
     return
@@ -197,28 +218,6 @@ adminRouter.delete('/skills/:id', async (req, res) => {
   }
 })
 
-function toExperienceUpdateData(data: z.infer<typeof experienceUpdateSchema>) {
-  const { highlightsZh, highlightsEn, startDate, endDate, ...rest } = data
-  return {
-    ...rest,
-    ...(startDate !== undefined ? { startDate: new Date(startDate) } : {}),
-    ...(endDate !== undefined ? { endDate: endDate === null ? null : new Date(endDate) } : {}),
-    ...(highlightsZh !== undefined ? { highlightsZh: JSON.stringify(highlightsZh) } : {}),
-    ...(highlightsEn !== undefined ? { highlightsEn: JSON.stringify(highlightsEn) } : {}),
-  }
-}
-
-function toExperienceCreateData(data: z.infer<typeof experienceCreateSchema>) {
-  const { highlightsZh, highlightsEn, startDate, endDate, ...rest } = data
-  return {
-    ...rest,
-    startDate: new Date(startDate),
-    endDate: endDate == null ? null : new Date(endDate),
-    highlightsZh: JSON.stringify(highlightsZh),
-    highlightsEn: JSON.stringify(highlightsEn),
-  }
-}
-
 adminRouter.post('/experience', async (req, res) => {
   const parsed = experienceCreateSchema.safeParse(req.body)
   if (!parsed.success) {
@@ -226,11 +225,7 @@ adminRouter.post('/experience', async (req, res) => {
     return
   }
   const experience = await prisma.experience.create({ data: toExperienceCreateData(parsed.data) })
-  res.status(201).json({
-    ...experience,
-    highlightsZh: parseStringArray(experience.highlightsZh),
-    highlightsEn: parseStringArray(experience.highlightsEn),
-  })
+  res.status(201).json(serializeExperience(experience))
 })
 
 adminRouter.put('/experience/:id', async (req, res) => {
@@ -242,11 +237,7 @@ adminRouter.put('/experience/:id', async (req, res) => {
   }
   try {
     const experience = await prisma.experience.update({ where: { id }, data: toExperienceUpdateData(parsed.data) })
-    res.json({
-      ...experience,
-      highlightsZh: parseStringArray(experience.highlightsZh),
-      highlightsEn: parseStringArray(experience.highlightsEn),
-    })
+    res.json(serializeExperience(experience))
   } catch {
     res.status(404).json({ error: '找不到指定的工作經歷。' })
   }
@@ -266,26 +257,6 @@ adminRouter.delete('/experience/:id', async (req, res) => {
   }
 })
 
-function toProjectUpdateData(data: z.infer<typeof projectUpdateSchema>) {
-  const { highlightsZh, highlightsEn, techStack, ...rest } = data
-  return {
-    ...rest,
-    ...(highlightsZh !== undefined ? { highlightsZh: JSON.stringify(highlightsZh) } : {}),
-    ...(highlightsEn !== undefined ? { highlightsEn: JSON.stringify(highlightsEn) } : {}),
-    ...(techStack !== undefined ? { techStack: JSON.stringify(techStack) } : {}),
-  }
-}
-
-function toProjectCreateData(data: z.infer<typeof projectCreateSchema>) {
-  const { highlightsZh, highlightsEn, techStack, ...rest } = data
-  return {
-    ...rest,
-    highlightsZh: JSON.stringify(highlightsZh),
-    highlightsEn: JSON.stringify(highlightsEn),
-    techStack: techStack !== undefined ? JSON.stringify(techStack) : null,
-  }
-}
-
 adminRouter.post('/projects', async (req, res) => {
   const parsed = projectCreateSchema.safeParse(req.body)
   if (!parsed.success) {
@@ -293,12 +264,7 @@ adminRouter.post('/projects', async (req, res) => {
     return
   }
   const project = await prisma.project.create({ data: toProjectCreateData(parsed.data) })
-  res.status(201).json({
-    ...project,
-    highlightsZh: parseStringArray(project.highlightsZh),
-    highlightsEn: parseStringArray(project.highlightsEn),
-    techStack: parseStringArray(project.techStack),
-  })
+  res.status(201).json(serializeProject(project))
 })
 
 adminRouter.put('/projects/:id', async (req, res) => {
@@ -310,12 +276,7 @@ adminRouter.put('/projects/:id', async (req, res) => {
   }
   try {
     const project = await prisma.project.update({ where: { id }, data: toProjectUpdateData(parsed.data) })
-    res.json({
-      ...project,
-      highlightsZh: parseStringArray(project.highlightsZh),
-      highlightsEn: parseStringArray(project.highlightsEn),
-      techStack: parseStringArray(project.techStack),
-    })
+    res.json(serializeProject(project))
   } catch {
     res.status(404).json({ error: '找不到指定的專案。' })
   }
@@ -334,40 +295,6 @@ adminRouter.delete('/projects/:id', async (req, res) => {
     res.status(404).json({ error: '找不到指定的專案。' })
   }
 })
-
-function isUniqueConstraintError(error: unknown): boolean {
-  return error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002'
-}
-
-function toEngineeringCaseUpdateData(data: z.infer<typeof engineeringCaseUpdateSchema>) {
-  const { architecture, techStack, ...rest } = data
-  return {
-    ...rest,
-    ...(architecture !== undefined ? { architecture: JSON.stringify(architecture) } : {}),
-    ...(techStack !== undefined ? { techStack: JSON.stringify(techStack) } : {}),
-  }
-}
-
-function toEngineeringCaseCreateData(data: z.infer<typeof engineeringCaseCreateSchema>) {
-  const { architecture, techStack, ...rest } = data
-  return {
-    ...rest,
-    architecture: architecture !== undefined ? JSON.stringify(architecture) : null,
-    techStack: techStack !== undefined ? JSON.stringify(techStack) : null,
-  }
-}
-
-function serializeEngineeringCase(engineeringCase: {
-  architecture: string | null
-  techStack: string | null
-  [key: string]: unknown
-}) {
-  return {
-    ...engineeringCase,
-    architecture: parseArchitectureSteps(engineeringCase.architecture),
-    techStack: parseStringArray(engineeringCase.techStack),
-  }
-}
 
 adminRouter.get('/engineering-cases', async (_req, res) => {
   const cases = await prisma.engineeringCase.findMany({ orderBy: { sortOrder: 'asc' } })
@@ -427,22 +354,6 @@ adminRouter.delete('/engineering-cases/:id', async (req, res) => {
     res.status(404).json({ error: '找不到指定的工程案例。' })
   }
 })
-
-function toCertificationUpdateData(data: z.infer<typeof certificationUpdateSchema>) {
-  const { issuedAt, ...rest } = data
-  return {
-    ...rest,
-    ...(issuedAt !== undefined ? { issuedAt: issuedAt === null ? null : new Date(issuedAt) } : {}),
-  }
-}
-
-function toCertificationCreateData(data: z.infer<typeof certificationCreateSchema>) {
-  const { issuedAt, ...rest } = data
-  return {
-    ...rest,
-    issuedAt: issuedAt == null ? null : new Date(issuedAt),
-  }
-}
 
 adminRouter.post('/certifications', async (req, res) => {
   const parsed = certificationCreateSchema.safeParse(req.body)

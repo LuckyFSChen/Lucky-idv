@@ -64,7 +64,7 @@ npm run dev                 # http://localhost:5173
 | `PORT` | 後端監聽埠號，預設 `3001` |
 | `FRONTEND_ORIGIN` | CORS 允許來源，需與前端實際網址一致 |
 | `ADMIN_EMAIL` | 唯一管理者帳號 email |
-| `ADMIN_PASSWORD_HASH` | 管理者密碼的 bcrypt 雜湊值（用 `npm run hash-password -- "密碼"` 產生），**請勿填明碼** |
+| `ADMIN_PASSWORD_HASH` | 管理者密碼的 PBKDF2 雜湊值（用 `npm run hash-password -- "密碼"` 產生），**請勿填明碼** |
 | `JWT_SECRET` | 簽發管理者 JWT 用的密鑰，正式環境務必改為隨機長字串並妥善保密 |
 | `JWT_EXPIRES_IN` | JWT 有效期限，預設 `12h` |
 | `UPLOAD_MAX_SIZE_MB` | 大頭貼上傳大小上限（MB），預設 `5` |
@@ -86,7 +86,7 @@ VITE_API_BASE_URL=https://api.example.com
 | `npm run prisma:migrate` | 以正式 migration 檔（`prisma/migrations/`）建立/更新資料庫結構，**建議正式環境改用此指令**並將 migration 檔加入版本控制 |
 | `npm run prisma:seed` | 寫入/更新個人資料、技能、經歷、專案與管理者帳號種子資料 |
 | `npm run db:setup` | 依序執行上述 generate → push → seed，`npm run dev` / `npm run test` 已自動掛勾 |
-| `npm run hash-password -- "密碼"` | 產生管理者密碼的 bcrypt 雜湊值 |
+| `npm run hash-password -- "密碼"` | 產生管理者密碼的 PBKDF2 雜湊值 |
 
 > `prisma/schema.prisma` 因 SQLite 不支援 `Json` 型別，`contactLinks`／`highlightsZh`／`highlightsEn`／`techStack` 皆以 JSON 字串儲存，API 層會自動轉換為陣列/物件；改用 MySQL/PostgreSQL 後可視需要改回原生 `Json` 型別。
 
@@ -103,7 +103,17 @@ cd frontend && npm run test    # vitest + @vue/test-utils：語言切換、路�
 
 frontend 的 production build 由 **Cloudflare Static Assets** 提供，`/api/*` 由 **Worker** 處理，兩者**同源（same-origin）**。因此 `VITE_API_BASE_URL` 維持留空即可 —— production bundle 只會發出 `/api/profile` 這類相對路徑請求，不含任何 `localhost`。
 
-> 目前階段只建立「靜態託管 + Worker 骨架」。API 與資料庫尚未遷移，Express + Prisma + SQLite 完全不受影響，仍可照 §一 的方式獨立運行。完整遷移規劃見 `CLOUDFLARE_MIGRATION_PLAN.md`。
+> 公開 API（`/api/profile`、`/api/skills`、`/api/experience`、`/api/projects`、`/api/engineering-cases`、`/api/certifications`）與管理後台 API（`/api/admin/*`）皆已遷移至 Worker + D1。
+>
+> 頭像上傳 `POST /api/admin/avatar` 與 `/uploads/*` 已改用 **R2**（binding `UPLOADS`）。部署前 bucket 必須先存在：
+>
+> ```bash
+> npx wrangler r2 bucket create idv-web-uploads
+> ```
+>
+> 本機 `wrangler dev` 會用 miniflare 模擬 R2，不需要真的 bucket。
+>
+> Express + Prisma + SQLite 完全不受影響，仍可照 §一 的方式獨立運行；本機開發時 Worker 也能透過 `API_PROXY_ORIGIN` 把 `/api/*` 轉發給它。
 
 ### 1. 相關檔案
 
@@ -142,7 +152,9 @@ cp .dev.vars.example .dev.vars    # Windows PowerShell：copy .dev.vars.example 
 
 #### 模式 A：完整驗證（建議）
 
-開兩個終端機。Worker 會把尚未遷移的 `/api/*`、`/uploads/*` 轉發到 Express backend，因此首頁能真的取得資料、頭像也能正常顯示。
+開兩個終端機。設定了 `API_PROXY_ORIGIN` 時，Worker 會把 `/api/*`、`/uploads/*` **全部**轉發到 Express backend（不經過 Worker 自己的 handler），因此首頁能真的取得資料、頭像也能正常顯示。
+
+> 想驗證 Worker 自己的 API 實作（而非 Express），請把 `.dev.vars` 的 `API_PROXY_ORIGIN` 註解掉，並確認已設定 `JWT_SECRET` 與本機 D1（`npm run d1:migrate:local`、`npm run d1:seed:local`、`npm run d1:admin:local`）。
 
 ```bash
 # 終端機 1 —— 照舊啟動 Express backend
@@ -160,7 +172,7 @@ npm run cf:dev                    # http://localhost:8787
 npm run cf:dev
 ```
 
-此時 `/api/health` 仍正常回傳 `{"status":"ok"}`，其餘 `/api/*` 回傳 **501**（明確告知尚未遷移），`/uploads/*` 回傳 404。首頁會停在錯誤狀態，屬預期行為。
+此時 `/api/health` 仍正常回傳 `{"status":"ok"}`。`/api/*` 會改由 Worker 自己處理：公開 API 與 `/api/admin/*` 需要本機 D1 有資料，未初始化時會回錯誤；未實作的路徑回 **501**，`/uploads/*` 回 404。
 
 > `npm run cf:dev` 會先執行 `npm run build` 重新產生 `frontend/dist`。若前端沒有改動、想省下建置時間，可改用 `npm run cf:dev:quick`。
 

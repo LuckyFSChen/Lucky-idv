@@ -9,3 +9,15 @@
 #   其他 /api/*  回傳 501（明確告知尚未遷移，而非靜默失敗）
 #   /uploads/*   回傳 404
 API_PROXY_ORIGIN="http://localhost:3001"
+
+# 管理後台簽發 / 驗證 JWT 用的密鑰。**必填**，未設定時 /api/admin/* 一律回 500。
+#
+# production 不放在這裡，改用：
+#   npx wrangler secret put JWT_SECRET
+#
+# 本機若同時跑 Express（API_PROXY_ORIGIN），兩邊填同一組值即可讓 token 互通
+# —— Worker 的 HS256 實作與 jsonwebtoken 完全相容。
+JWT_SECRET="請改成一組夠長的隨機字串"
+
+# token 有效期限，選填。支援 30m / 12h / 7d / 3600（秒）。預設 12h。
+JWT_EXPIRES_IN="12h"

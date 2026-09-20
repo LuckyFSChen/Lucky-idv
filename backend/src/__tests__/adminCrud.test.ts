@@ -1,10 +1,10 @@
 import fs from 'node:fs'
 import path from 'node:path'
-import bcrypt from 'bcryptjs'
 import request from 'supertest'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import app from '../app.js'
 import { prisma } from '../db.js'
+import { hashPassword } from '../utils/password.js'
 
 const TEST_ADMIN_EMAIL = 'test-admin-crud@example.com'
 const TEST_ADMIN_PASSWORD = 'Test-Password-456!'
@@ -14,7 +14,7 @@ let originalProfile: Awaited<ReturnType<typeof prisma.profile.findFirst>>
 const uploadedFiles: string[] = []
 
 beforeAll(async () => {
-  const passwordHash = await bcrypt.hash(TEST_ADMIN_PASSWORD, 10)
+  const passwordHash = await hashPassword(TEST_ADMIN_PASSWORD)
   await prisma.adminUser.upsert({
     where: { email: TEST_ADMIN_EMAIL },
     update: { passwordHash },
