@@ -21,26 +21,41 @@ describe('seed data', () => {
       ])
 
     expect(profileCount).toBe(1)
-    expect(skillCategoryCount).toBe(13)
-    expect(skillCount).toBe(43)
+    expect(skillCategoryCount).toBe(6)
+    expect(skillCount).toBe(34)
     expect(experienceCount).toBe(1)
-    expect(projectCount).toBe(1)
+    expect(projectCount).toBe(4)
     expect(adminCount).toBe(1)
   })
 
-  it('populates at least one featured engineering case and one certification', async () => {
+  it('populates exactly 9 engineering cases including the original multi-agent pipeline', async () => {
     const [engineeringCaseCount, certificationCount, featuredCase] = await Promise.all([
       prisma.engineeringCase.count(),
       prisma.certification.count(),
       prisma.engineeringCase.findUnique({ where: { slug: 'taskflow-multi-agent-pipeline' } }),
     ])
 
-    expect(engineeringCaseCount).toBeGreaterThanOrEqual(1)
+    expect(engineeringCaseCount).toBe(9)
     expect(certificationCount).toBeGreaterThanOrEqual(1)
     expect(featuredCase).toBeTruthy()
     expect(featuredCase?.featured).toBe(true)
     expect(featuredCase?.titleZh).toBeTruthy()
     expect(featuredCase?.titleEn).toBeTruthy()
+  })
+
+  it('includes all 8 newly added engineering case slugs', async () => {
+    const slugs = [
+      'git-repository-topology-detection',
+      'deterministic-deployment-validation',
+      'test-baseline-regression-detection',
+      'ai-structured-output-recovery',
+      'preview-runtime-lifecycle-management',
+      'remote-ai-agent-infrastructure',
+      'multi-region-ecommerce-integration',
+      'payment-integration-order-state',
+    ]
+    const cases = await prisma.engineeringCase.findMany({ where: { slug: { in: slugs } } })
+    expect(cases.length).toBe(slugs.length)
   })
 
   it('marks the seeded project as featured', async () => {

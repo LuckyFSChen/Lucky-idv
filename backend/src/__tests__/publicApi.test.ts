@@ -35,8 +35,12 @@ describe('public read-only API', () => {
     const res = await request(app).get('/api/projects')
     expect(res.status).toBe(200)
     expect(Array.isArray(res.body)).toBe(true)
-    expect(res.body[0].nameZh).toBe('DineFlow')
+    expect(res.body[0].nameZh).toBe('TaskFlow')
     expect(Array.isArray(res.body[0].techStack)).toBe(true)
+    const names = res.body.map((project: { nameZh: string }) => project.nameZh)
+    expect(names).toContain('DineFlow')
+    expect(names).toContain('Lucky IDV')
+    expect(names).toContain('Wings of the Hollow')
   })
 
   it('GET /api/projects includes the new category/subtitle/featured/githubUrl fields', async () => {
