@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted } from 'vue'
+import { computed, onMounted, onUnmounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import ArchitectureFlow from '@/components/ArchitectureFlow.vue'
 import AppFooter from '@/components/AppFooter.vue'
@@ -7,6 +7,11 @@ import AppNav from '@/components/AppNav.vue'
 import { uiText } from '@/i18n/ui'
 import { useLocaleStore } from '@/stores/locale'
 import { usePortfolioStore } from '@/stores/portfolio'
+import { setDocumentTitle, setMetaTag } from '@/utils/head'
+
+const DEFAULT_TITLE = 'Lucky | Backend & System Engineer'
+const DEFAULT_DESCRIPTION =
+  'Backend & System Engineer specializing in PHP, Laravel, e-commerce, system integration, AI automation and engineering workflows.'
 
 const route = useRoute()
 const portfolio = usePortfolioStore()
@@ -21,6 +26,25 @@ onMounted(() => {
   if (portfolio.status === 'idle') {
     portfolio.fetchAll()
   }
+})
+
+watch(
+  engineeringCase,
+  (item) => {
+    if (!item) return
+    setDocumentTitle(`${item.titleEn} | Lucky`)
+    setMetaTag('name', 'description', item.summaryEn)
+    setMetaTag('property', 'og:title', `${item.titleEn} | Lucky`)
+    setMetaTag('property', 'og:description', item.summaryEn)
+  },
+  { immediate: true },
+)
+
+onUnmounted(() => {
+  setDocumentTitle(DEFAULT_TITLE)
+  setMetaTag('name', 'description', DEFAULT_DESCRIPTION)
+  setMetaTag('property', 'og:title', DEFAULT_TITLE)
+  setMetaTag('property', 'og:description', DEFAULT_DESCRIPTION)
 })
 
 function pick(zh: string, en: string) {

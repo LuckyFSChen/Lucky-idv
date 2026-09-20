@@ -104,6 +104,7 @@ onBeforeUnmount(() => {
           :key="link.href"
           :href="link.href"
           :class="{ 'nav__links--active': activeSection === link.id }"
+          :aria-current="activeSection === link.id ? 'true' : undefined"
         >{{ link.label }}</a>
       </nav>
 
@@ -119,6 +120,7 @@ onBeforeUnmount(() => {
         <button
           class="nav__lang"
           type="button"
+          :aria-label="t.langSwitchAriaLabel"
           @click="localeStore.toggle()"
         >
           {{ t.langSwitch }}
@@ -147,6 +149,7 @@ onBeforeUnmount(() => {
           :key="link.href"
           :href="link.href"
           :class="{ 'nav__links--active': activeSection === link.id }"
+          :aria-current="activeSection === link.id ? 'true' : undefined"
           @click="closeMenu"
         >{{
           link.label
