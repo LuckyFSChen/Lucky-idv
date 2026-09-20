@@ -19,7 +19,8 @@ function description(item: Certification) {
   return localeStore.locale === 'zh' ? item.descriptionZh : item.descriptionEn
 }
 
-const certifications = computed(() => props.certifications)
+// 僅呈現具備正式發證日期（issuedAt）的已驗證項目，避免在發證資訊確認前展示未證實的證照聲稱。
+const certifications = computed(() => props.certifications.filter((item) => !!item.issuedAt))
 </script>
 
 <template>
