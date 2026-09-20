@@ -10,6 +10,7 @@ const localeStore = useLocaleStore()
 const t = computed(() => uiText[localeStore.locale].contact)
 
 const email = computed(() => props.profile?.contactEmail)
+const phone = computed(() => props.profile?.contactPhone)
 const links = computed(() => props.profile?.contactLinks ?? [])
 </script>
 
@@ -36,6 +37,11 @@ const links = computed(() => props.profile?.contactLinks ?? [])
             class="btn btn--primary"
             :href="`mailto:${email}`"
           >{{ t.emailCta }}</a>
+          <a
+            v-if="phone"
+            class="btn btn--primary"
+            :href="`tel:${phone}`"
+          >{{ t.phoneCta }}</a>
           <a
             v-for="link in links"
             :key="link.url"
