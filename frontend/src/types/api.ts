@@ -13,6 +13,7 @@ export interface Profile {
   introEn: string
   avatarUrl: string | null
   contactEmail: string | null
+  contactPhone: string | null
   contactLinks: ContactLink[]
   updatedAt: string
 }
