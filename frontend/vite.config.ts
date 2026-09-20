@@ -4,6 +4,9 @@ import { fileURLToPath, URL } from 'node:url'
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 
+const backendPort = Number(process.env.PORT ?? 3001)
+const backendTarget = `http://localhost:${backendPort}`
+
 export default defineConfig({
   plugins: [vue()],
   resolve: {
@@ -15,11 +18,23 @@ export default defineConfig({
     port: 5173,
     proxy: {
       '/api': {
-        target: 'http://localhost:3001',
+        target: backendTarget,
         changeOrigin: true,
       },
       '/uploads': {
-        target: 'http://localhost:3001',
+        target: backendTarget,
+        changeOrigin: true,
+      },
+    },
+  },
+  preview: {
+    proxy: {
+      '/api': {
+        target: backendTarget,
+        changeOrigin: true,
+      },
+      '/uploads': {
+        target: backendTarget,
         changeOrigin: true,
       },
     },
