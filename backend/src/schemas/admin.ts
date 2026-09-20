@@ -19,6 +19,7 @@ export const profileUpdateSchema = z
     introZh: z.string().min(1),
     introEn: z.string().min(1),
     contactEmail: z.string().email().nullable(),
+    contactPhone: z.string().min(1).nullable(),
     contactLinks: z.array(contactLinkSchema),
   })
   .partial()

@@ -21,6 +21,7 @@ model Profile {
   introEn       String
   avatarUrl     String?
   contactEmail  String?
+  contactPhone  String?
   // 聯絡連結（如 GitHub、LinkedIn），以 JSON 字串儲存（SQLite 不支援 Json 型別），格式為 [{ "label": string, "url": string }]
   contactLinks  String?
   updatedAt     DateTime @updatedAt
