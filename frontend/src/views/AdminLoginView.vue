@@ -9,10 +9,11 @@ const route = useRoute()
 
 const form = reactive({ email: '', password: '' })
 const submitting = ref(false)
+const remember = ref(false)
 
 async function handleSubmit() {
   submitting.value = true
-  const ok = await authStore.login(form.email, form.password)
+  const ok = await authStore.login(form.email, form.password, remember.value)
   submitting.value = false
   if (ok) {
     const redirect = typeof route.query.redirect === 'string' ? route.query.redirect : '/admin'
@@ -52,6 +53,14 @@ async function handleSubmit() {
           autocomplete="current-password"
           required
         >
+      </label>
+
+      <label class="admin-login__remember">
+        <input
+          v-model="remember"
+          type="checkbox"
+        >
+        <span>保持登入</span>
       </label>
 
       <p
@@ -125,6 +134,13 @@ async function handleSubmit() {
 .admin-login__field input:focus {
   outline: 2px solid var(--color-accent);
   outline-offset: 1px;
+}
+
+.admin-login__remember {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
 }
 
 .admin-login__error {
