@@ -172,29 +172,77 @@ async function main() {
 
   await prisma.project.create({
     data: {
+      nameZh: 'TaskFlow',
+      nameEn: 'TaskFlow',
+      summaryZh:
+        '我自行設計並開發 TaskFlow，一套 Local-first 的 AI Engineering Workflow Platform，讓 AI 代理能依循「需求 → 規劃 → 人工核准 → 實作 → Git Commit → 獨立驗證 → 修正 → 部署驗證 → 合併 → 結案」的完整流程執行工程任務，同時保留人在迴圈中的關鍵審核點。',
+      summaryEn:
+        'I independently designed and built TaskFlow, a local-first AI Engineering Workflow Platform that lets AI agents carry out engineering tasks through a full Requirement → Planning → Human Approval → Implementation → Git Commit → Independent Validation → Repair → Deployment Validation → Merge → Close pipeline, while keeping a human-in-the-loop at key review points.',
+      highlightsZh: JSON.stringify([
+        '以 Git worktree 隔離每個任務的工作副本，避免任務間互相干擾',
+        '導入測試基準線（test baseline）與差異比對，區分既有失敗與本次修改造成的迴歸',
+        '整合瀏覽器驗證（browser validation）與部署驗證流程，確保交付前通過可觀察的檢查',
+        '設計 Preview 生命週期管理，涵蓋啟動、健康檢查、驗證到結束的完整流程',
+        '透過 LINE 與 Cloudflare 建置遠端任務通知與觸發管道',
+        '以結構化 AI 輸出（structured AI output）串接規劃、執行、驗證與修正各階段',
+      ]),
+      highlightsEn: JSON.stringify([
+        'Isolated each task in its own Git worktree to prevent cross-task interference',
+        'Introduced test baselines and regression comparison to distinguish pre-existing failures from newly introduced regressions',
+        'Integrated browser validation and deployment validation into the pipeline to ensure observable checks before delivery',
+        'Designed preview runtime lifecycle management covering startup, health checks, validation, and teardown',
+        'Built remote task notification and triggering via LINE and Cloudflare',
+        'Connected planning, execution, validation, and repair stages through structured AI output',
+      ]),
+      techStack: JSON.stringify([
+        'AI Agent Workflow',
+        'Human-in-the-loop',
+        'Git Worktree',
+        'Test Baseline',
+        'Regression Comparison',
+        'Browser Validation',
+        'Preview Lifecycle',
+        'Process Management',
+        'LINE Integration',
+        'Cloudflare',
+        'SQLite',
+        'Structured AI Output',
+      ]),
+      link: null,
+      githubUrl: null,
+      imageUrl: null,
+      categoryZh: 'AI 工程平台',
+      categoryEn: 'AI Engineering Platform',
+      subtitleZh: 'AI 工程工作流平台',
+      subtitleEn: 'AI Engineering Workflow Platform',
+      featured: true,
+      sortOrder: 0,
+    },
+  })
+
+  await prisma.project.create({
+    data: {
       nameZh: 'DineFlow',
       nameEn: 'DineFlow',
       summaryZh:
-        '我自行規劃並開發餐飲點餐 SaaS 系統 DineFlow。透過這個專案，我累積了從需求規劃、資料庫設計、功能開發到系統部署的完整經驗，也開始從使用者流程與產品角度思考系統設計。',
+        '我自行規劃並開發餐飲點餐 SaaS 系統 DineFlow。透過這個專案，我累積了從資料庫設計、內用點餐流程、購物車與結帳、多店家架構到系統部署的完整經驗，也開始從使用者流程與產品角度思考系統設計。',
       summaryEn:
-        'I independently planned and developed DineFlow, a SaaS-based restaurant ordering system. Through this project, I gained end-to-end experience in requirement planning, database design, feature development, and system deployment, and strengthened my ability to consider system design from both user experience and product perspectives.',
+        'I independently planned and developed DineFlow, a SaaS-based restaurant ordering system. Through this project, I gained end-to-end experience across database design, dine-in ordering flow, cart and checkout, multi-store architecture, and system deployment, and strengthened my ability to consider system design from both user experience and product perspectives.',
       highlightsZh: JSON.stringify([
-        '店家與菜單管理',
-        'QR Code 桌邊點餐',
-        '內用與外帶流程',
-        '購物車與訂單系統',
-        '商家後台',
-        'GCP 雲端主機部署',
+        '以 Laravel 開發，設計 Store → Tables / Categories / Products → Orders → Order Items 的資料模型',
+        '實作內用點餐流程：QR Code 掃碼 → 選桌 → 瀏覽菜單 → 加入購物車 → 結帳 → 建立訂單',
+        '支援多店家（multi-store）架構，讓不同店家的菜單、桌位與訂單彼此獨立',
+        '規劃 SaaS 化的商業模式與商家後台，並以 MVP 精神優先驗證核心點餐流程',
+        '將系統部署至 GCP 雲端主機，處理環境設定與上線流程',
       ]),
       highlightsEn: JSON.stringify([
-        'Store and menu management',
-        'QR code table ordering',
-        'Dine-in and takeout workflows',
-        'Shopping cart and order management',
-        'Merchant administration system',
-        'GCP Cloud server deployment',
+        'Built with Laravel; designed a data model of Store → Tables / Categories / Products → Orders → Order Items',
+        'Implemented the dine-in ordering flow: QR code scan → table selection → menu browsing → cart → checkout → order creation',
+        'Supported a multi-store architecture, keeping each store’s menu, tables, and orders independent',
+        'Planned the SaaS business model and merchant admin panel, prioritizing an MVP to validate the core ordering flow first',
+        'Deployed the system to a GCP cloud server, handling environment setup and release',
       ]),
-      techStack: JSON.stringify(['GCP']),
+      techStack: JSON.stringify(['Laravel', 'MySQL', 'Cart', 'Checkout', 'Multi-store', 'SaaS', 'GCP']),
       link: null,
       githubUrl: null,
       imageUrl: null,
@@ -203,7 +251,73 @@ async function main() {
       subtitleZh: '餐飲點餐 SaaS 系統',
       subtitleEn: 'Restaurant Ordering SaaS',
       featured: true,
-      sortOrder: 0,
+      sortOrder: 1,
+    },
+  })
+
+  await prisma.project.create({
+    data: {
+      nameZh: 'Lucky IDV',
+      nameEn: 'Lucky IDV',
+      summaryZh:
+        '這個作品集網站本身也是我的專案之一。它是一套資料驅動（data-driven）的全端工程作品集平台，所有經歷、專案與工程案例都存放在資料庫中並透過後台管理，而不是寫死在頁面裡的靜態履歷。',
+      summaryEn:
+        'This portfolio website is itself one of my projects. It is a data-driven, full-stack engineering portfolio platform where all experience, project, and engineering case content is stored in a database and managed through an admin panel, rather than hard-coded into static resume pages.',
+      highlightsZh: JSON.stringify([
+        '前端以 Vue 3 與 TypeScript 建置，支援 zh-TW / EN 雙語系（i18n）',
+        '設計 Prisma 資料模型，將經歷、專案、工程案例、技能與證照抽象為結構化內容',
+        '開發後台管理介面與對應 API，支援內容的新增、編輯與排序',
+        '部署於 Cloudflare，並串接自訂網域',
+      ]),
+      highlightsEn: JSON.stringify([
+        'Built the frontend with Vue 3 and TypeScript, supporting zh-TW / EN bilingual content (i18n)',
+        'Designed a Prisma data model that abstracts experience, projects, engineering cases, skills, and certifications into structured content',
+        'Developed the admin management interface and corresponding APIs for creating, editing, and reordering content',
+        'Deployed on Cloudflare with a custom domain',
+      ]),
+      techStack: JSON.stringify(['Vue 3', 'TypeScript', 'i18n', 'Prisma', 'Admin', 'API', 'Cloudflare']),
+      link: null,
+      githubUrl: null,
+      imageUrl: null,
+      categoryZh: '全端工程平台',
+      categoryEn: 'Full-stack Engineering Platform',
+      subtitleZh: '全端工程作品集平台',
+      subtitleEn: 'Full-stack Engineering Portfolio Platform',
+      featured: true,
+      sortOrder: 2,
+    },
+  })
+
+  await prisma.project.create({
+    data: {
+      nameZh: 'Wings of the Hollow',
+      nameEn: 'Wings of the Hollow',
+      summaryZh:
+        '利用 Godot 引擎開發的 2D 平台動作遊戲專案，涵蓋玩法規劃、角色動畫狀態機與遊戲機制設計，是我在工程之外探索遊戲開發的個人專案。',
+      summaryEn:
+        'A 2D platform action game project built with the Godot engine, covering gameplay planning, character animation state machines, and game mechanics design. A personal project exploring game development outside of my main engineering work.',
+      highlightsZh: JSON.stringify([
+        '以 Godot 引擎開發 2D 平台動作遊戲',
+        '規劃核心玩法與關卡設計方向',
+        '實作角色動畫狀態機（animation states）',
+        '設計並調整遊戲機制（game mechanics）',
+      ]),
+      highlightsEn: JSON.stringify([
+        'Developed a 2D platform action game using the Godot engine',
+        'Planned core gameplay and level design direction',
+        'Implemented character animation state machines',
+        'Designed and tuned game mechanics',
+      ]),
+      techStack: JSON.stringify(['Godot', 'Gameplay Planning', 'Animation States', 'Game Mechanics']),
+      link: null,
+      githubUrl: null,
+      imageUrl: null,
+      categoryZh: '其他專案',
+      categoryEn: 'Other Projects',
+      subtitleZh: '2D 平台動作遊戲專案',
+      subtitleEn: '2D Platform Game Project',
+      featured: false,
+      sortOrder: 3,
     },
   })
 
