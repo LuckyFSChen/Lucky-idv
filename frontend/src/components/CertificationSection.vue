@@ -100,13 +100,14 @@ const certifications = computed(() => props.certifications.filter((item) => !!it
 }
 
 .certification__card {
-  background: #fff;
+  background: var(--color-surface);
   border-radius: var(--radius-lg);
   border: 1px solid var(--color-border);
   padding: 1.5rem;
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+  transition: border-color var(--motion-base) var(--motion-easing);
 }
 
 .certification__name {

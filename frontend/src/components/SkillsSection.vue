@@ -35,13 +35,13 @@ const categories = computed(() => props.categories)
         </p>
       </div>
 
-      <div
-        v-motion-fade-visible-once
-        class="skills__grid"
-      >
+      <div class="skills__grid">
         <article
-          v-for="category in categories"
+          v-for="(category, index) in categories"
           :key="category.id"
+          v-motion
+          :initial="{ opacity: 0, y: 16 }"
+          :visible-once="{ opacity: 1, y: 0, transition: { duration: 400, delay: Math.min(index * 60, 300) } }"
           class="skills__card"
         >
           <h3 class="skills__card-title">
@@ -69,18 +69,20 @@ const categories = computed(() => props.categories)
 }
 
 .skills__card {
-  background: #fff;
+  background: var(--color-surface);
   border-radius: var(--radius-md);
   padding: 1.75rem;
   border: 1px solid var(--color-border);
   transition:
-    transform 0.3s ease,
-    box-shadow 0.3s ease;
+    transform var(--motion-base) var(--motion-easing),
+    box-shadow var(--motion-base) var(--motion-easing),
+    border-color var(--motion-base) var(--motion-easing);
 }
 
 .skills__card:hover {
   transform: translateY(-4px);
   box-shadow: var(--shadow-card);
+  border-color: var(--color-border-strong);
 }
 
 .skills__card-title {
@@ -101,7 +103,7 @@ const categories = computed(() => props.categories)
 .skills__list li {
   font-size: 0.85rem;
   padding: 0.4rem 0.8rem;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: var(--color-bg-alt);
   color: var(--color-text-secondary);
 }

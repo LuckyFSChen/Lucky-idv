@@ -78,6 +78,6 @@ onMounted(() => {
 }
 
 .page__state--error {
-  color: #c0392b;
+  color: var(--color-danger);
 }
 </style>

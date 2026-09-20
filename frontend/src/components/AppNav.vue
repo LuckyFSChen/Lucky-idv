@@ -203,7 +203,7 @@ onBeforeUnmount(() => {
   right: 0;
   bottom: -2px;
   height: 2px;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: var(--color-accent);
   transform: scaleX(0);
   transform-origin: center;
@@ -235,7 +235,7 @@ onBeforeUnmount(() => {
   justify-content: center;
   width: 34px;
   height: 34px;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   border: 1px solid var(--color-border);
   background: transparent;
   color: var(--color-text);
@@ -251,7 +251,7 @@ onBeforeUnmount(() => {
 .nav__lang {
   border: 1px solid var(--color-border);
   background: transparent;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   padding: 0.35rem 0.85rem;
   font-size: 0.8rem;
   font-weight: 600;

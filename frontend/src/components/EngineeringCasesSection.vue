@@ -192,7 +192,7 @@ const cases = computed(() => props.cases)
 .engineering-cases__tech-tag {
   font-size: 0.8rem;
   padding: 0.3rem 0.7rem;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: var(--color-bg-alt);
   color: var(--color-text-secondary);
 }

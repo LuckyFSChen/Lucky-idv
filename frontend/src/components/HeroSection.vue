@@ -190,7 +190,7 @@ const initials = computed(() => displayName.value.slice(0, 1).toUpperCase())
   width: 26px;
   height: 42px;
   border: 2px solid var(--color-text-secondary);
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   display: flex;
   justify-content: center;
   padding-top: 6px;
@@ -200,7 +200,7 @@ const initials = computed(() => displayName.value.slice(0, 1).toUpperCase())
 .hero__scroll span {
   width: 4px;
   height: 8px;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: var(--color-text-secondary);
   animation: hero-scroll 1.8s ease-in-out infinite;
 }
