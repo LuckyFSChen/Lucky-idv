@@ -47,130 +47,72 @@ async function main() {
   }> = [
     {
       nameZh: '後端開發',
-      nameEn: 'Backend Development',
+      nameEn: 'Backend',
       skills: [
         { nameZh: 'PHP', nameEn: 'PHP' },
         { nameZh: 'Laravel', nameEn: 'Laravel' },
         { nameZh: 'Magento', nameEn: 'Magento' },
+        { nameZh: 'Node.js', nameEn: 'Node.js' },
       ],
     },
     {
-      nameZh: 'API',
-      nameEn: 'API',
-      skills: [
-        { nameZh: 'RESTful API', nameEn: 'RESTful API' },
-        { nameZh: '第三方 API 整合', nameEn: 'Third-Party API Integration' },
-        { nameZh: 'JWT', nameEn: 'JWT' },
-        { nameZh: 'OAuth2', nameEn: 'OAuth2' },
-      ],
-    },
-    {
-      nameZh: '資料庫',
-      nameEn: 'Databases',
+      nameZh: '資料儲存',
+      nameEn: 'Data',
       skills: [
         { nameZh: 'MySQL', nameEn: 'MySQL' },
         { nameZh: 'MariaDB', nameEn: 'MariaDB' },
         { nameZh: 'PostgreSQL', nameEn: 'PostgreSQL' },
-        { nameZh: 'SQL Query Optimization', nameEn: 'SQL Query Optimization' },
-      ],
-    },
-    {
-      nameZh: '快取與非同步處理',
-      nameEn: 'Caching & Async Processing',
-      skills: [
+        { nameZh: 'SQLite', nameEn: 'SQLite' },
         { nameZh: 'Redis', nameEn: 'Redis' },
-        { nameZh: 'Queue', nameEn: 'Queue' },
-        { nameZh: 'Job', nameEn: 'Job' },
-        { nameZh: 'Message Queue 基礎架構', nameEn: 'Message Queue Fundamentals' },
       ],
     },
     {
-      nameZh: 'DevOps / 開發環境',
-      nameEn: 'DevOps / Dev Environment',
+      nameZh: 'API 與整合',
+      nameEn: 'API & Integration',
+      skills: [
+        { nameZh: 'REST API', nameEn: 'REST API' },
+        { nameZh: 'OAuth2', nameEn: 'OAuth2' },
+        { nameZh: 'JWT', nameEn: 'JWT' },
+        { nameZh: 'Webhook', nameEn: 'Webhook' },
+        { nameZh: 'Payment Gateway', nameEn: 'Payment Gateway' },
+        { nameZh: '第三方 API 整合', nameEn: 'Third-party API' },
+      ],
+    },
+    {
+      nameZh: '基礎設施',
+      nameEn: 'Infrastructure',
       skills: [
         { nameZh: 'Docker', nameEn: 'Docker' },
-        { nameZh: 'WSL2', nameEn: 'WSL2' },
+        { nameZh: 'Linux', nameEn: 'Linux' },
         { nameZh: 'Nginx', nameEn: 'Nginx' },
-        { nameZh: 'Git', nameEn: 'Git' },
-        { nameZh: 'CI/CD', nameEn: 'CI/CD' },
-      ],
-    },
-    {
-      nameZh: '搜尋服務',
-      nameEn: 'Search Services',
-      skills: [{ nameZh: 'OpenSearch', nameEn: 'OpenSearch' }],
-    },
-    {
-      nameZh: '支付整合',
-      nameEn: 'Payment Integration',
-      skills: [
-        { nameZh: 'Stripe', nameEn: 'Stripe' },
-        { nameZh: 'Apple Pay', nameEn: 'Apple Pay' },
-        { nameZh: 'Google Pay', nameEn: 'Google Pay' },
-        {
-          nameZh: '第三方支付服務串接經驗',
-          nameEn: 'Third-Party Payment Gateway Integration',
-        },
-      ],
-    },
-    {
-      nameZh: '電商系統',
-      nameEn: 'E-commerce Systems',
-      skills: [
-        {
-          nameZh: '訂單、付款、物流、會員、商品與多國站點系統',
-          nameEn: 'Orders, Payments, Logistics, Membership, Products & Multi-Region Storefronts',
-        },
-      ],
-    },
-    {
-      nameZh: '系統設計',
-      nameEn: 'System Design',
-      skills: [
-        { nameZh: '資料庫 Schema', nameEn: 'Database Schema' },
-        { nameZh: 'API Design', nameEn: 'API Design' },
-        { nameZh: 'Service Layer', nameEn: 'Service Layer' },
-        { nameZh: 'Dependency Injection', nameEn: 'Dependency Injection' },
-        { nameZh: '模組化架構', nameEn: 'Modular Architecture' },
-      ],
-    },
-    {
-      nameZh: '雲端與部署',
-      nameEn: 'Cloud & Deployment',
-      skills: [
         { nameZh: 'GCP', nameEn: 'GCP' },
-        { nameZh: 'Linux Server', nameEn: 'Linux Server' },
+        { nameZh: 'Cloudflare', nameEn: 'Cloudflare' },
         { nameZh: 'DNS', nameEn: 'DNS' },
-        { nameZh: 'Web Service 部署', nameEn: 'Web Service Deployment' },
       ],
     },
     {
-      nameZh: 'AI 輔助開發',
-      nameEn: 'AI-Assisted Development',
+      nameZh: '工程實踐',
+      nameEn: 'Engineering',
       skills: [
-        {
-          nameZh: '使用 AI 協助程式開發、除錯、需求分析與系統規劃',
-          nameEn: 'Using AI to Assist Development, Debugging, Requirement Analysis & System Planning',
-        },
+        { nameZh: 'Git', nameEn: 'Git' },
+        { nameZh: 'Git Worktree', nameEn: 'Git Worktree' },
+        { nameZh: 'Testing', nameEn: 'Testing' },
+        { nameZh: 'CI/CD', nameEn: 'CI/CD' },
+        { nameZh: 'Queue', nameEn: 'Queue' },
+        { nameZh: 'Job', nameEn: 'Job' },
+        { nameZh: 'OpenSearch', nameEn: 'OpenSearch' },
       ],
     },
     {
-      nameZh: '遊戲開發',
-      nameEn: 'Game Development',
+      nameZh: 'AI 工程',
+      nameEn: 'AI Engineering',
       skills: [
-        { nameZh: 'Godot', nameEn: 'Godot' },
-        { nameZh: 'Unreal Engine', nameEn: 'Unreal Engine' },
-        { nameZh: 'C++ / Blueprint 基礎', nameEn: 'C++ / Blueprint Basics' },
-      ],
-    },
-    {
-      nameZh: '產品開發',
-      nameEn: 'Product Development',
-      skills: [
-        { nameZh: 'SaaS 規劃', nameEn: 'SaaS Planning' },
-        { nameZh: 'MVP', nameEn: 'MVP' },
-        { nameZh: '需求拆解', nameEn: 'Requirement Breakdown' },
-        { nameZh: '產品功能設計', nameEn: 'Feature Design' },
+        { nameZh: 'Claude', nameEn: 'Claude' },
+        { nameZh: 'Codex', nameEn: 'Codex' },
+        { nameZh: 'AI Agent Workflow', nameEn: 'AI Agent Workflow' },
+        { nameZh: 'Human-in-the-loop', nameEn: 'Human-in-the-loop' },
+        { nameZh: 'Automated Validation', nameEn: 'Automated Validation' },
+        { nameZh: 'Structured Output', nameEn: 'Structured Output' },
       ],
     },
   ]
