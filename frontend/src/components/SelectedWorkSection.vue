@@ -84,7 +84,11 @@ const featuredProjects = computed(() => props.projects.filter((project) => proje
               target="_blank"
               rel="noopener"
             >
-              {{ t.viewCase }} →
+              <span>{{ t.viewCase }}</span>
+              <span
+                class="selected-work__link-arrow"
+                aria-hidden="true"
+              >→</span>
             </a>
           </div>
         </article>
@@ -101,20 +105,22 @@ const featuredProjects = computed(() => props.projects.filter((project) => proje
 }
 
 .selected-work__card {
-  background: #fff;
+  background: var(--color-surface);
   border-radius: var(--radius-lg);
   overflow: hidden;
   border: 1px solid var(--color-border);
   display: flex;
   flex-direction: column;
   transition:
-    transform 0.3s ease,
-    box-shadow 0.3s ease;
+    transform var(--motion-base) var(--motion-easing),
+    box-shadow var(--motion-base) var(--motion-easing),
+    border-color var(--motion-base) var(--motion-easing);
 }
 
 .selected-work__card:hover {
-  transform: translateY(-6px);
+  transform: translateY(-4px);
   box-shadow: var(--shadow-card-hover);
+  border-color: var(--color-border-strong);
 }
 
 .selected-work__media {
@@ -134,7 +140,8 @@ const featuredProjects = computed(() => props.projects.filter((project) => proje
 .selected-work__media-placeholder {
   font-size: 2.5rem;
   font-weight: 800;
-  color: rgba(0, 0, 0, 0.16);
+  color: var(--color-text-secondary);
+  opacity: 0.35;
 }
 
 .selected-work__body {
@@ -153,7 +160,7 @@ const featuredProjects = computed(() => props.projects.filter((project) => proje
 }
 
 .selected-work__name {
-  font-size: 1.3rem;
+  font-size: var(--text-project-title);
   font-weight: 700;
 }
 
@@ -165,6 +172,9 @@ const featuredProjects = computed(() => props.projects.filter((project) => proje
 
 .selected-work__link {
   align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
   font-weight: 600;
   color: var(--color-accent);
   text-decoration: none;
@@ -172,5 +182,14 @@ const featuredProjects = computed(() => props.projects.filter((project) => proje
 
 .selected-work__link:hover {
   color: var(--color-accent-strong);
+}
+
+.selected-work__link-arrow {
+  display: inline-block;
+  transition: transform var(--motion-base) var(--motion-easing);
+}
+
+.selected-work__link:hover .selected-work__link-arrow {
+  transform: translateX(3px);
 }
 </style>

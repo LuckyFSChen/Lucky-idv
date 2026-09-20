@@ -131,7 +131,8 @@ const initials = computed(() => displayName.value.slice(0, 1).toUpperCase())
   overflow: hidden;
   margin-bottom: 2rem;
   box-shadow: var(--shadow-card);
-  border: 4px solid rgba(255, 255, 255, 0.8);
+  border: 4px solid var(--color-surface);
+  transition: border-color var(--motion-base) var(--motion-easing);
 }
 
 .hero__avatar img {
@@ -153,14 +154,14 @@ const initials = computed(() => displayName.value.slice(0, 1).toUpperCase())
 }
 
 .hero__eyebrow {
-  font-size: 1.1rem;
+  font-size: var(--text-eyebrow);
   color: var(--color-text-secondary);
   font-weight: 500;
 }
 
 .hero__name {
   margin-top: 0.5rem;
-  font-size: clamp(3rem, 9vw, 5.5rem);
+  font-size: var(--text-hero);
   font-weight: 800;
   letter-spacing: -0.03em;
   line-height: 1.05;
@@ -168,7 +169,7 @@ const initials = computed(() => displayName.value.slice(0, 1).toUpperCase())
 
 .hero__title {
   margin-top: 1rem;
-  font-size: clamp(1.1rem, 2.2vw, 1.5rem);
+  font-size: var(--text-body);
   color: var(--color-text-secondary);
   max-width: 560px;
 }

@@ -102,7 +102,11 @@ const projects = computed(() => props.projects)
               target="_blank"
               rel="noopener"
             >
-              {{ t.viewProject }} →
+              <span>{{ t.viewProject }}</span>
+              <span
+                class="projects__link-arrow"
+                aria-hidden="true"
+              >→</span>
             </a>
           </div>
         </article>
@@ -119,20 +123,22 @@ const projects = computed(() => props.projects)
 }
 
 .projects__card {
-  background: #fff;
+  background: var(--color-surface);
   border-radius: var(--radius-lg);
   overflow: hidden;
   border: 1px solid var(--color-border);
   display: flex;
   flex-direction: column;
   transition:
-    transform 0.3s ease,
-    box-shadow 0.3s ease;
+    transform var(--motion-base) var(--motion-easing),
+    box-shadow var(--motion-base) var(--motion-easing),
+    border-color var(--motion-base) var(--motion-easing);
 }
 
 .projects__card:hover {
-  transform: translateY(-6px);
+  transform: translateY(-4px);
   box-shadow: var(--shadow-card-hover);
+  border-color: var(--color-border-strong);
 }
 
 .projects__media {
@@ -152,7 +158,8 @@ const projects = computed(() => props.projects)
 .projects__media-placeholder {
   font-size: 2.5rem;
   font-weight: 800;
-  color: rgba(0, 0, 0, 0.16);
+  color: var(--color-text-secondary);
+  opacity: 0.35;
 }
 
 .projects__body {
@@ -163,7 +170,7 @@ const projects = computed(() => props.projects)
 }
 
 .projects__name {
-  font-size: 1.3rem;
+  font-size: var(--text-project-title);
   font-weight: 700;
 }
 
@@ -213,6 +220,9 @@ const projects = computed(() => props.projects)
 
 .projects__link {
   align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
   font-weight: 600;
   color: var(--color-accent);
   text-decoration: none;
@@ -220,5 +230,14 @@ const projects = computed(() => props.projects)
 
 .projects__link:hover {
   color: var(--color-accent-strong);
+}
+
+.projects__link-arrow {
+  display: inline-block;
+  transition: transform var(--motion-base) var(--motion-easing);
+}
+
+.projects__link:hover .projects__link-arrow {
+  transform: translateX(3px);
 }
 </style>

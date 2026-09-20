@@ -24,6 +24,7 @@
   --color-inverse-bg-hover: #000000;
   --color-inverse-text: #ffffff;
   --color-hover-overlay: rgba(0, 0, 0, 0.04);
+  --color-surface-translucent: rgba(255, 255, 255, 0.72);
   --gradient-hero: linear-gradient(135deg, #eef4ff 0%, #f7f0ff 45%, #fff5f0 100%);
   --gradient-text: linear-gradient(120deg, #0071e3 0%, #7b61ff 50%, #ff6b9c 100%);
 
@@ -91,6 +92,7 @@
   --color-inverse-bg-hover: #ffffff;
   --color-inverse-text: #0b0b0c;
   --color-hover-overlay: rgba(255, 255, 255, 0.06);
+  --color-surface-translucent: rgba(17, 17, 19, 0.72);
   --gradient-hero: linear-gradient(135deg, #14141a 0%, #17141f 45%, #1a1512 100%);
   --gradient-text: linear-gradient(120deg, #2997ff 0%, #9b8bff 50%, #ff8fb3 100%);
 
