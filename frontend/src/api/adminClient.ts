@@ -137,6 +137,7 @@ export interface EngineeringCaseInput {
   githubUrl?: string | null
   projectUrl?: string | null
   featured?: boolean
+  published?: boolean
   sortOrder?: number
 }
 
@@ -210,6 +211,9 @@ export const adminApi = {
 
   deleteProject: (token: string | null, id: number) =>
     adminRequest<void>(`/api/admin/projects/${id}`, token, { method: 'DELETE' }),
+
+  listEngineeringCases: (token: string | null) =>
+    adminRequest<EngineeringCase[]>('/api/admin/engineering-cases', token),
 
   createEngineeringCase: (token: string | null, data: EngineeringCaseInput) =>
     adminRequest<EngineeringCase>('/api/admin/engineering-cases', token, {

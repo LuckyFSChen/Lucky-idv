@@ -308,6 +308,46 @@ describe('admin engineering case CRUD', () => {
 
     await request(app).delete(`/api/admin/engineering-cases/${id}`).set('Authorization', `Bearer ${token}`)
   })
+
+  it('excludes unpublished cases from the public API but keeps them visible to admin', async () => {
+    const createRes = await request(app)
+      .post('/api/admin/engineering-cases')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ ...validEngineeringCasePayload, slug: 'unpublished-case', published: false })
+    expect(createRes.status).toBe(201)
+    expect(createRes.body.published).toBe(false)
+    const id = createRes.body.id as number
+
+    const publicListRes = await request(app).get('/api/engineering-cases')
+    expect(publicListRes.status).toBe(200)
+    expect(publicListRes.body.some((item: { slug: string }) => item.slug === 'unpublished-case')).toBe(false)
+
+    const publicDetailRes = await request(app).get('/api/engineering-cases/unpublished-case')
+    expect(publicDetailRes.status).toBe(404)
+
+    const adminListRes = await request(app)
+      .get('/api/admin/engineering-cases')
+      .set('Authorization', `Bearer ${token}`)
+    expect(adminListRes.status).toBe(200)
+    expect(adminListRes.body.some((item: { slug: string }) => item.slug === 'unpublished-case')).toBe(true)
+
+    const publishRes = await request(app)
+      .put(`/api/admin/engineering-cases/${id}`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({ published: true })
+    expect(publishRes.status).toBe(200)
+    expect(publishRes.body.published).toBe(true)
+
+    const publicDetailAfterPublishRes = await request(app).get('/api/engineering-cases/unpublished-case')
+    expect(publicDetailAfterPublishRes.status).toBe(200)
+
+    await request(app).delete(`/api/admin/engineering-cases/${id}`).set('Authorization', `Bearer ${token}`)
+  })
+
+  it('rejects fetching the admin engineering case list without authentication', async () => {
+    const res = await request(app).get('/api/admin/engineering-cases')
+    expect(res.status).toBe(401)
+  })
 })
 
 describe('admin certification CRUD', () => {

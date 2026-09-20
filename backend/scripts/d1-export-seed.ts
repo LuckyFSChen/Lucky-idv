@@ -118,7 +118,7 @@ async function main(): Promise<void> {
         'investigationZh', 'investigationEn', 'solutionZh', 'solutionEn',
         'validationZh', 'validationEn', 'resultZh', 'resultEn',
         'architecture', 'techStack', 'githubUrl', 'projectUrl',
-        'featured', 'sortOrder', 'createdAt', 'updatedAt',
+        'featured', 'published', 'sortOrder', 'createdAt', 'updatedAt',
       ],
       engineeringCases,
     ),

@@ -34,6 +34,7 @@ interface EngineeringCaseDraft {
   githubUrl: string
   projectUrl: string
   featured: boolean
+  published: boolean
   sortOrder: number
 }
 
@@ -85,6 +86,7 @@ function emptyDraft(): EngineeringCaseDraft {
     githubUrl: '',
     projectUrl: '',
     featured: false,
+    published: true,
     sortOrder: 0,
   }
 }
@@ -115,6 +117,7 @@ function draftFromCase(item: EngineeringCase): EngineeringCaseDraft {
     githubUrl: item.githubUrl ?? '',
     projectUrl: item.projectUrl ?? '',
     featured: item.featured,
+    published: item.published,
     sortOrder: item.sortOrder,
   }
 }
@@ -145,6 +148,7 @@ function toInput(draft: EngineeringCaseDraft): EngineeringCaseInput {
     githubUrl: draft.githubUrl || null,
     projectUrl: draft.projectUrl || null,
     featured: draft.featured,
+    published: draft.published,
     sortOrder: draft.sortOrder,
   }
 }
@@ -306,6 +310,13 @@ async function addCase() {
               >
               <span>精選（Featured）</span>
             </label>
+            <label class="admin-form__field admin-form__field--checkbox">
+              <input
+                v-model="editDrafts[item.id].published"
+                type="checkbox"
+              >
+              <span>已發布（公開頁面可見）</span>
+            </label>
           </div>
 
           <label class="admin-form__field">
@@ -462,7 +473,7 @@ async function addCase() {
             </div>
           </div>
           <p class="admin-card__meta">
-            {{ item.slug }} · {{ item.categoryZh }}<span v-if="item.featured"> · 精選</span>
+            {{ item.slug }} · {{ item.categoryZh }}<span v-if="item.featured"> · 精選</span><span v-if="!item.published"> · 未發布</span>
           </p>
         </template>
       </div>
@@ -533,6 +544,13 @@ async function addCase() {
             type="checkbox"
           >
           <span>精選（Featured）</span>
+        </label>
+        <label class="admin-form__field admin-form__field--checkbox">
+          <input
+            v-model="newDraft.published"
+            type="checkbox"
+          >
+          <span>已發布（公開頁面可見）</span>
         </label>
       </div>
 

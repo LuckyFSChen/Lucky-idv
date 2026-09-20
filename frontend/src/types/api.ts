@@ -101,6 +101,7 @@ export interface EngineeringCase {
   githubUrl: string | null
   projectUrl: string | null
   featured: boolean
+  published: boolean
   sortOrder: number
   createdAt: string
   updatedAt: string

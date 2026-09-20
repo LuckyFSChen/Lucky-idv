@@ -383,7 +383,7 @@ async function main() {
     techStack: JSON.stringify(['git rev-parse', 'Repository Root', 'Git Dir', 'Linked Worktree', 'Path Normalization', 'Canonical Domain Model', 'Policy Evaluation']),
     githubUrl: null,
     projectUrl: null,
-    featured: false,
+    featured: true,
     sortOrder: 1,
   })
 
@@ -419,7 +419,7 @@ async function main() {
     techStack: JSON.stringify(['HTTP API Validation', 'Authenticated State', 'Preview Runtime', 'Process Lifecycle', 'Browser Validation', 'Deterministic Checks']),
     githubUrl: null,
     projectUrl: null,
-    featured: false,
+    featured: true,
     sortOrder: 2,
   })
 
@@ -593,7 +593,7 @@ async function main() {
     techStack: JSON.stringify(['Address Validation', 'Regional Checkout Logic', 'Shipping Integration', 'Payment Gateway', 'Market Configuration']),
     githubUrl: null,
     projectUrl: null,
-    featured: false,
+    featured: true,
     sortOrder: 7,
   })
 

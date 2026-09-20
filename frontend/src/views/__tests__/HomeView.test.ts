@@ -127,6 +127,7 @@ const engineeringCases: EngineeringCase[] = [
     githubUrl: null,
     projectUrl: null,
     featured: true,
+    published: true,
     sortOrder: 0,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),

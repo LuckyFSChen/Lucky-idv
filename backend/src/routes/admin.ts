@@ -369,6 +369,11 @@ function serializeEngineeringCase(engineeringCase: {
   }
 }
 
+adminRouter.get('/engineering-cases', async (_req, res) => {
+  const cases = await prisma.engineeringCase.findMany({ orderBy: { sortOrder: 'asc' } })
+  res.json(cases.map(serializeEngineeringCase))
+})
+
 adminRouter.post('/engineering-cases', async (req, res) => {
   const parsed = engineeringCaseCreateSchema.safeParse(req.body)
   if (!parsed.success) {

@@ -71,6 +71,7 @@ describe('AdminDashboardView', () => {
         if (url.includes('/api/skills')) return jsonResponse(skillCategories)
         if (url.includes('/api/experience')) return jsonResponse(experiences)
         if (url.includes('/api/projects')) return jsonResponse(projects)
+        if (url.includes('/api/admin/engineering-cases')) return jsonResponse([])
         if (url.includes('/api/engineering-cases')) return jsonResponse([])
         if (url.includes('/api/certifications')) return jsonResponse([])
         return Promise.reject(new Error(`unexpected fetch: ${url}`))

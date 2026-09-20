@@ -34,6 +34,7 @@ const cases: EngineeringCase[] = [
     githubUrl: null,
     projectUrl: null,
     featured: true,
+    published: true,
     sortOrder: 0,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
@@ -79,6 +80,22 @@ describe('EngineeringCasesSection', () => {
 
     const link = wrapper.get('a.engineering-cases__card')
     expect(link.attributes('href')).toBe('/cases/taskflow-multi-agent-pipeline')
+  })
+
+  it('applies the Bento featured class to featured cases so they render larger in the grid', () => {
+    const wrapper = mount(EngineeringCasesSection, {
+      props: {
+        cases: [
+          cases[0],
+          { ...cases[0], id: 2, slug: 'non-featured-case', featured: false },
+        ],
+      },
+      global: { plugins: [createTestRouter(), MotionPlugin] },
+    })
+
+    const cards = wrapper.findAll('a.engineering-cases__card')
+    expect(cards[0].classes()).toContain('engineering-cases__card--featured')
+    expect(cards[1].classes()).not.toContain('engineering-cases__card--featured')
   })
 
   it('renders en title/category/summary when the locale is switched to English', async () => {
