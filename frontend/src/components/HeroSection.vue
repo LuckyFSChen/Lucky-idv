@@ -3,12 +3,18 @@ import { computed } from 'vue'
 import { resolveAssetUrl } from '@/api/client'
 import { uiText } from '@/i18n/ui'
 import { useLocaleStore } from '@/stores/locale'
+import { motionTransition, useReducedMotion } from '@/composables/useReducedMotion'
 import type { Profile } from '@/types/api'
 
 const props = defineProps<{ profile: Profile | null }>()
 
 const localeStore = useLocaleStore()
 const t = computed(() => uiText[localeStore.locale].hero)
+
+const reducedMotion = useReducedMotion()
+function reveal(duration: number, delay = 0) {
+  return motionTransition(duration, delay, reducedMotion.value)
+}
 
 const displayName = computed(() => props.profile?.preferredName ?? props.profile?.displayName ?? '')
 const title = computed(() =>
@@ -31,7 +37,7 @@ const initials = computed(() => displayName.value.slice(0, 1).toUpperCase())
       <div
         v-motion
         :initial="{ opacity: 0, y: 24 }"
-        :enter="{ opacity: 1, y: 0, transition: { duration: 500 } }"
+        :enter="{ opacity: 1, y: 0, transition: reveal(350) }"
         class="hero__avatar"
       >
         <img
@@ -48,7 +54,7 @@ const initials = computed(() => displayName.value.slice(0, 1).toUpperCase())
       <p
         v-motion
         :initial="{ opacity: 0, y: 16 }"
-        :enter="{ opacity: 1, y: 0, transition: { duration: 500, delay: 100 } }"
+        :enter="{ opacity: 1, y: 0, transition: reveal(350, 80) }"
         class="hero__eyebrow"
       >
         {{ t.eyebrow }}
@@ -57,7 +63,7 @@ const initials = computed(() => displayName.value.slice(0, 1).toUpperCase())
       <h1
         v-motion
         :initial="{ opacity: 0, y: 20 }"
-        :enter="{ opacity: 1, y: 0, transition: { duration: 550, delay: 180 } }"
+        :enter="{ opacity: 1, y: 0, transition: reveal(400, 140) }"
         class="hero__name gradient-text"
       >
         {{ displayName }}
@@ -66,7 +72,7 @@ const initials = computed(() => displayName.value.slice(0, 1).toUpperCase())
       <p
         v-motion
         :initial="{ opacity: 0, y: 16 }"
-        :enter="{ opacity: 1, y: 0, transition: { duration: 550, delay: 260 } }"
+        :enter="{ opacity: 1, y: 0, transition: reveal(350, 200) }"
         class="hero__title"
       >
         {{ title }}
@@ -75,7 +81,7 @@ const initials = computed(() => displayName.value.slice(0, 1).toUpperCase())
       <div
         v-motion
         :initial="{ opacity: 0, y: 16 }"
-        :enter="{ opacity: 1, y: 0, transition: { duration: 550, delay: 340 } }"
+        :enter="{ opacity: 1, y: 0, transition: reveal(350, 260) }"
         class="hero__actions"
       >
         <a

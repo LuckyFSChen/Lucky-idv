@@ -5,7 +5,10 @@ import { MotionPlugin } from '@vueuse/motion'
 import App from './App.vue'
 import router from './router'
 import { useThemeStore } from './stores/theme'
+import { applyReducedMotionPresets } from './composables/useReducedMotion'
 import './assets/main.css'
+
+applyReducedMotionPresets()
 
 const app = createApp(App)
 

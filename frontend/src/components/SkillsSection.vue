@@ -2,12 +2,18 @@
 import { computed } from 'vue'
 import { uiText } from '@/i18n/ui'
 import { useLocaleStore } from '@/stores/locale'
+import { motionTransition, useReducedMotion } from '@/composables/useReducedMotion'
 import type { SkillCategory } from '@/types/api'
 
 const props = defineProps<{ categories: SkillCategory[] }>()
 
 const localeStore = useLocaleStore()
 const t = computed(() => uiText[localeStore.locale].skills)
+
+const reducedMotion = useReducedMotion()
+function reveal(index: number) {
+  return motionTransition(400, Math.min(index * 60, 300), reducedMotion.value)
+}
 
 function categoryName(category: SkillCategory) {
   return localeStore.locale === 'zh' ? category.nameZh : category.nameEn
@@ -41,7 +47,7 @@ const categories = computed(() => props.categories)
           :key="category.id"
           v-motion
           :initial="{ opacity: 0, y: 16 }"
-          :visible-once="{ opacity: 1, y: 0, transition: { duration: 400, delay: Math.min(index * 60, 300) } }"
+          :visible-once="{ opacity: 1, y: 0, transition: reveal(index) }"
           class="skills__card"
         >
           <h3 class="skills__card-title">

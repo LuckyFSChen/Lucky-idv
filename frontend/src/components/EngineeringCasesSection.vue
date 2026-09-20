@@ -2,12 +2,18 @@
 import { computed } from 'vue'
 import { uiText } from '@/i18n/ui'
 import { useLocaleStore } from '@/stores/locale'
+import { motionTransition, useReducedMotion } from '@/composables/useReducedMotion'
 import type { EngineeringCase } from '@/types/api'
 
 const props = defineProps<{ cases: EngineeringCase[] }>()
 
 const localeStore = useLocaleStore()
 const t = computed(() => uiText[localeStore.locale].engineeringCases)
+
+const reducedMotion = useReducedMotion()
+function reveal(index: number) {
+  return motionTransition(400, Math.min(index * 60, 300), reducedMotion.value)
+}
 
 function title(item: EngineeringCase) {
   return localeStore.locale === 'zh' ? item.titleZh : item.titleEn
@@ -53,7 +59,7 @@ const cases = computed(() => props.cases)
           :key="item.id"
           v-motion
           :initial="{ opacity: 0, y: 16 }"
-          :visible-once="{ opacity: 1, y: 0, transition: { duration: 400, delay: Math.min(index * 60, 300) } }"
+          :visible-once="{ opacity: 1, y: 0, transition: reveal(index) }"
           class="engineering-cases__card"
           :class="{ 'engineering-cases__card--featured': item.featured }"
           :to="{ name: 'case-detail', params: { slug: item.slug } }"
