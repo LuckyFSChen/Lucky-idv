@@ -9,6 +9,22 @@
       name="description"
       content="Lucky - PHP / Laravel 後端工程師，電商、API、資料庫與系統整合經驗。"
     />
+    <script>
+      (function () {
+        try {
+          var stored = localStorage.getItem('idv-web:theme');
+          var resolved =
+            stored === 'light' || stored === 'dark'
+              ? stored
+              : window.matchMedia('(prefers-color-scheme: dark)').matches
+                ? 'dark'
+                : 'light';
+          document.documentElement.setAttribute('data-theme', resolved);
+        } catch (e) {
+          document.documentElement.setAttribute('data-theme', 'light');
+        }
+      })();
+    </script>
   </head>
   <body>
     <div id="app"></div>
