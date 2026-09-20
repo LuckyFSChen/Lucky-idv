@@ -92,7 +92,7 @@ async function main(): Promise<void> {
       'Profile',
       [
         'id', 'displayName', 'preferredName', 'titleZh', 'titleEn',
-        'introZh', 'introEn', 'avatarUrl', 'contactEmail', 'contactLinks', 'updatedAt',
+        'introZh', 'introEn', 'avatarUrl', 'contactEmail', 'contactPhone', 'contactLinks', 'updatedAt',
       ],
       profiles,
     ),

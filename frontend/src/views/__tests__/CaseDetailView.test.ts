@@ -27,6 +27,7 @@ const profile: Profile = {
   introEn: "I'm Lucky.",
   avatarUrl: null,
   contactEmail: null,
+  contactPhone: null,
   contactLinks: [],
   updatedAt: new Date().toISOString(),
 }

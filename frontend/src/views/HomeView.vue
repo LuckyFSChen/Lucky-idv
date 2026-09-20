@@ -51,6 +51,9 @@ watch(
     if (profile.contactEmail) {
       person.email = profile.contactEmail
     }
+    if (profile.contactPhone) {
+      person.telephone = profile.contactPhone
+    }
     const sameAs = (profile.contactLinks ?? []).map((link) => link.url)
     if (sameAs.length > 0) {
       person.sameAs = sameAs

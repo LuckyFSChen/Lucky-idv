@@ -9,7 +9,7 @@
  * 這些測試不碰任何本機 SQLite 檔案，可與既有的 supertest 測試並存。
  */
 
-import { readFileSync } from 'node:fs'
+import { readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import type { D1Database } from '@cloudflare/workers-types'
 import { PrismaD1 } from '@prisma/adapter-d1'
@@ -44,9 +44,15 @@ beforeAll(async () => {
 
   const db = (await mf.getD1Database('DB')) as unknown as D1Database
 
-  const migration = readFileSync(join(process.cwd(), 'migrations', '0001_init.sql'), 'utf8')
-  for (const statement of splitStatements(migration)) {
-    await db.prepare(statement).run()
+  const migrationsDir = join(process.cwd(), 'migrations')
+  const migrationFiles = readdirSync(migrationsDir)
+    .filter((name) => name.endsWith('.sql'))
+    .sort()
+  for (const file of migrationFiles) {
+    const migration = readFileSync(join(migrationsDir, file), 'utf8')
+    for (const statement of splitStatements(migration)) {
+      await db.prepare(statement).run()
+    }
   }
 
   prisma = new PrismaClient({ adapter: new PrismaD1(db) })
@@ -77,6 +83,7 @@ describe('D1：schema 與基本 CRUD', () => {
         titleEn: 'Backend Engineer',
         introZh: '介紹\n\n含換行與 \'單引號\'',
         introEn: 'Intro',
+        contactPhone: '+886-912-345-678',
         contactLinks,
       },
     })
@@ -84,6 +91,7 @@ describe('D1：schema 與基本 CRUD', () => {
     const found = await prisma.profile.findFirst({ orderBy: { id: 'asc' } })
 
     expect(found?.id).toBe(created.id)
+    expect(found?.contactPhone).toBe('+886-912-345-678')
     expect(found?.contactLinks).toBe(contactLinks)
     expect(found?.introZh).toContain("'單引號'")
     // @updatedAt 由 Prisma 在應用層填入，應往返為 Date

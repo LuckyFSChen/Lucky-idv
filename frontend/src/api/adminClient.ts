@@ -61,6 +61,7 @@ export interface ProfileInput {
   introZh: string
   introEn: string
   contactEmail: string | null
+  contactPhone: string | null
   contactLinks: ContactLink[]
 }
 

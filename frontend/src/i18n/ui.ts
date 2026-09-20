@@ -82,6 +82,7 @@ export const uiText = {
       title: '聯絡方式',
       subtitle: '歡迎透過以下方式與我聯絡，一起討論系統與產品。',
       emailCta: '寄送 Email',
+      phoneCta: '撥打電話',
     },
     footer: {
       builtWith: '以 Vue 3、TypeScript 打造',
@@ -174,6 +175,7 @@ export const uiText = {
       title: 'Contact',
       subtitle: "Feel free to reach out — let's talk about systems and products.",
       emailCta: 'Send an Email',
+      phoneCta: 'Call Me',
     },
     footer: {
       builtWith: 'Built with Vue 3 & TypeScript',

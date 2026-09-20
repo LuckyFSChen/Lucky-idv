@@ -42,6 +42,7 @@ afterAll(async () => {
         introEn: originalProfile.introEn,
         avatarUrl: originalProfile.avatarUrl,
         contactEmail: originalProfile.contactEmail,
+        contactPhone: originalProfile.contactPhone,
         contactLinks: originalProfile.contactLinks,
       },
     })
@@ -62,14 +63,26 @@ describe('admin profile CRUD', () => {
       .send({
         displayName: 'Lucky Test',
         contactEmail: 'lucky-test@example.com',
+        contactPhone: '+886-912-345-678',
         contactLinks: [{ label: 'GitHub', url: 'https://github.com/example' }],
       })
     expect(res.status).toBe(200)
     expect(res.body.displayName).toBe('Lucky Test')
+    expect(res.body.contactPhone).toBe('+886-912-345-678')
     expect(res.body.contactLinks).toEqual([{ label: 'GitHub', url: 'https://github.com/example' }])
 
     const publicRes = await request(app).get('/api/profile')
     expect(publicRes.body.displayName).toBe('Lucky Test')
+    expect(publicRes.body.contactPhone).toBe('+886-912-345-678')
+  })
+
+  it('accepts a null contactPhone to clear the value', async () => {
+    const res = await request(app)
+      .put('/api/admin/profile')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ contactPhone: null })
+    expect(res.status).toBe(200)
+    expect(res.body.contactPhone).toBeNull()
   })
 })
 

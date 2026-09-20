@@ -36,6 +36,7 @@ async function main() {
         'This Understand → Model → Design → Implement → Validate → Deploy → Debug → Improve loop is how I consistently approach e-commerce backend work, cross-system integration, and engineering automation problems, rather than treating each fix or feature as a one-off task.',
       avatarUrl: null,
       contactEmail: null,
+      contactPhone: null,
       contactLinks: null,
     },
   })

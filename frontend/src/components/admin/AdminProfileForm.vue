@@ -19,6 +19,7 @@ const form = reactive({
   introZh: '',
   introEn: '',
   contactEmail: '',
+  contactPhone: '',
   contactLinks: [] as ContactLink[],
 })
 
@@ -32,6 +33,7 @@ watch(
     form.introZh = profile?.introZh ?? ''
     form.introEn = profile?.introEn ?? ''
     form.contactEmail = profile?.contactEmail ?? ''
+    form.contactPhone = profile?.contactPhone ?? ''
     form.contactLinks = profile ? profile.contactLinks.map((link) => ({ ...link })) : []
   },
   { immediate: true },
@@ -75,6 +77,7 @@ async function handleSubmit() {
       introZh: form.introZh,
       introEn: form.introEn,
       contactEmail: form.contactEmail || null,
+      contactPhone: form.contactPhone || null,
       contactLinks: form.contactLinks.filter((link) => link.label && link.url),
     })
     message.value = { type: 'success', text: '個人資料已儲存。' }
@@ -199,6 +202,13 @@ async function handleAvatarCropped(file: File) {
           <input
             v-model="form.contactEmail"
             type="email"
+          >
+        </label>
+        <label class="admin-form__field">
+          <span>聯絡手機</span>
+          <input
+            v-model="form.contactPhone"
+            type="tel"
           >
         </label>
       </div>
