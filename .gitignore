@@ -26,3 +26,6 @@ wrangler.jsonc
 
 # D1：由腳本產生的 SQL（d1-admin.sql 內含密碼雜湊，絕不可提交）
 backend/.generated/
+
+# Keep this sensitive database backup out of source control.
+/backup-before-contact-phone.sql
