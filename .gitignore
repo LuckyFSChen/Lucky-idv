@@ -29,3 +29,50 @@ backend/.generated/
 
 # Keep this sensitive database backup out of source control.
 /backup-before-contact-phone.sql
+
+# Local credentials and database exports (migrations / seed source remain tracked)
+.env.*
+!.env.example
+!.env.*.example
+.dev.vars.*
+!.dev.vars.example
+!.dev.vars.*.example
+backups/
+backup/
+dumps/
+dump/
+**/.generated/
+*.bak
+*.bak.*
+*.dump
+*.dump.*
+*.db
+*.db-*
+*.db.*
+*.sqlite
+*.sqlite-*
+*.sqlite.*
+*.sqlite3
+*.sqlite3-*
+*.sqlite3.*
+backup*.sql*
+*backup.sql*
+*backup-*.sql*
+*backup_*.sql*
+dump*.sql*
+*dump.sql*
+*dump-*.sql*
+*dump_*.sql*
+export*.sql*
+*export.sql*
+*export-*.sql*
+*export_*.sql*
+d1-admin.sql*
+# Compressed SQL cannot be safely inspected as plain text.
+*.sql.gz
+*.sql.bz2
+*.sql.xz
+*.sql.zip
+*.sql.zst
+*.sql.7z
+*.sql.tar
