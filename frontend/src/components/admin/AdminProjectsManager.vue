@@ -3,6 +3,7 @@ import { reactive, ref } from 'vue'
 import { adminApi, AdminApiError, type ProjectInput } from '@/api/adminClient'
 import { useAdminAuthStore } from '@/stores/adminAuth'
 import type { Project } from '@/types/api'
+import ProjectImagesField from './ProjectImagesField.vue'
 
 const props = defineProps<{ projects: Project[] }>()
 const emit = defineEmits<{ refresh: []; unauthorized: [] }>()
@@ -23,7 +24,7 @@ interface ProjectDraft {
   techStackText: string
   link: string
   githubUrl: string
-  imageUrl: string
+  imageUrls: string[]
   featured: boolean
   sortOrder: number
 }
@@ -57,7 +58,7 @@ function emptyDraft(): ProjectDraft {
     techStackText: '',
     link: '',
     githubUrl: '',
-    imageUrl: '',
+    imageUrls: [],
     featured: false,
     sortOrder: 0,
   }
@@ -78,7 +79,9 @@ function draftFromProject(project: Project): ProjectDraft {
     techStackText: project.techStack.join(', '),
     link: project.link ?? '',
     githubUrl: project.githubUrl ?? '',
-    imageUrl: project.imageUrl ?? '',
+    imageUrls: project.imageUrls?.length
+      ? [...project.imageUrls]
+      : project.imageUrl ? [project.imageUrl] : [],
     featured: project.featured,
     sortOrder: project.sortOrder,
   }
@@ -99,7 +102,8 @@ function toInput(draft: ProjectDraft): ProjectInput {
     techStack: csvToArray(draft.techStackText),
     link: draft.link || null,
     githubUrl: draft.githubUrl || null,
-    imageUrl: draft.imageUrl || null,
+    imageUrls: [...draft.imageUrls],
+    imageUrl: draft.imageUrls[0] ?? null,
     featured: draft.featured,
     sortOrder: draft.sortOrder,
   }
@@ -109,6 +113,7 @@ const editDrafts = reactive<Record<number, ProjectDraft>>({})
 const newDraft = reactive<ProjectDraft>(emptyDraft())
 const editingId = ref<number | null>(null)
 const saving = ref(false)
+const uploading = ref(false)
 const message = ref<{ type: 'success' | 'error'; text: string } | null>(null)
 
 function handleError(err: unknown) {
@@ -255,13 +260,12 @@ async function addProject() {
                 type="url"
               >
             </label>
-            <label class="admin-form__field">
-              <span>圖片網址</span>
-              <input
-                v-model="editDrafts[project.id].imageUrl"
-                type="text"
-              >
-            </label>
+            <ProjectImagesField
+              v-model="editDrafts[project.id].imageUrls"
+              :disabled="saving || uploading"
+              @busy="uploading = $event"
+              @error="handleError"
+            />
             <label class="admin-form__field admin-form__field--checkbox">
               <input
                 v-model="editDrafts[project.id].featured"
@@ -310,7 +314,7 @@ async function addProject() {
             <button
               type="button"
               class="btn btn--primary"
-              :disabled="saving"
+              :disabled="saving || uploading"
               @click="saveEdit(project.id)"
             >
               儲存
@@ -318,6 +322,7 @@ async function addProject() {
             <button
               type="button"
               class="btn btn--secondary"
+              :disabled="saving || uploading"
               @click="cancelEdit"
             >
               取消
@@ -332,6 +337,7 @@ async function addProject() {
               <button
                 type="button"
                 class="btn btn--secondary"
+                :disabled="saving || uploading"
                 @click="startEdit(project)"
               >
                 編輯
@@ -339,7 +345,7 @@ async function addProject() {
               <button
                 type="button"
                 class="admin-danger-link"
-                :disabled="saving"
+                :disabled="saving || uploading"
                 @click="removeProject(project.id)"
               >
                 刪除
@@ -412,13 +418,12 @@ async function addProject() {
             type="url"
           >
         </label>
-        <label class="admin-form__field">
-          <span>圖片網址</span>
-          <input
-            v-model="newDraft.imageUrl"
-            type="text"
-          >
-        </label>
+        <ProjectImagesField
+          v-model="newDraft.imageUrls"
+          :disabled="saving || uploading"
+          @busy="uploading = $event"
+          @error="handleError"
+        />
         <label class="admin-form__field admin-form__field--checkbox">
           <input
             v-model="newDraft.featured"
@@ -465,7 +470,7 @@ async function addProject() {
       <button
         type="button"
         class="btn btn--primary"
-        :disabled="saving"
+        :disabled="saving || uploading"
         @click="addProject"
       >
         新增專案
