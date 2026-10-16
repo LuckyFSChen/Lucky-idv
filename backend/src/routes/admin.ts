@@ -2,7 +2,7 @@ import { Router } from 'express'
 import rateLimit from 'express-rate-limit'
 import { prisma } from '../db.js'
 import { requireAuth } from '../middleware/requireAuth.js'
-import { avatarUpload } from '../middleware/upload.js'
+import { avatarUpload, projectImageUpload } from '../middleware/upload.js'
 import {
   certificationCreateSchema,
   certificationUpdateSchema,
@@ -86,6 +86,15 @@ adminRouter.post('/login', loginLimiter, async (req, res) => {
 })
 
 adminRouter.use(requireAuth)
+
+adminRouter.post('/project-images', projectImageUpload.single('image'), (req, res) => {
+  if (!req.file) {
+    res.status(400).json({ error: '請選擇要上傳的圖片。' })
+    return
+  }
+
+  res.status(201).json({ url: `/uploads/${req.file.filename}` })
+})
 
 adminRouter.put('/profile', async (req, res) => {
   const parsed = profileUpdateSchema.safeParse(req.body)

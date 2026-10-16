@@ -75,6 +75,7 @@ const projectBaseSchema = z.object({
   link: z.string().url().nullable().optional(),
   githubUrl: z.string().url().nullable().optional(),
   imageUrl: z.string().nullable().optional(),
+  imageUrls: z.array(z.string().min(1)).max(3).optional(),
   featured: z.boolean().optional(),
   sortOrder: z.number().int().optional(),
 })

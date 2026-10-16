@@ -176,17 +176,56 @@ describe('admin project CRUD', () => {
         highlightsZh: ['特色一'],
         highlightsEn: ['Feature one'],
         techStack: ['Node.js'],
+        imageUrls: ['/uploads/project-first.png', '/uploads/project-second.png'],
       })
     expect(createRes.status).toBe(201)
     expect(createRes.body.techStack).toEqual(['Node.js'])
+    expect(createRes.body.imageUrls).toEqual([
+      '/uploads/project-first.png', '/uploads/project-second.png',
+    ])
     const id = createRes.body.id as number
 
     const updateRes = await request(app)
       .put(`/api/admin/projects/${id}`)
       .set('Authorization', `Bearer ${token}`)
-      .send({ techStack: ['Node.js', 'TypeScript'] })
+      .send({
+        techStack: ['Node.js', 'TypeScript'],
+        imageUrls: ['/uploads/project-second.png', '/uploads/project-first.png'],
+      })
     expect(updateRes.status).toBe(200)
     expect(updateRes.body.techStack).toEqual(['Node.js', 'TypeScript'])
+    expect(updateRes.body.imageUrls).toEqual([
+      '/uploads/project-second.png', '/uploads/project-first.png',
+    ])
+
+    const publicRes = await request(app).get('/api/projects')
+    expect(publicRes.status).toBe(200)
+    expect(publicRes.body.find((project: { id: number }) => project.id === id).imageUrls)
+      .toEqual(updateRes.body.imageUrls)
+
+    const tooManyImages = Array.from({ length: 4 }, (_, i) => `/uploads/project-${i}.png`)
+    const invalidCreate = await request(app)
+      .post('/api/admin/projects')
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        nameZh: '圖片超量', nameEn: 'Too many images',
+        summaryZh: '摘要', summaryEn: 'Summary',
+        highlightsZh: [], highlightsEn: [], imageUrls: tooManyImages,
+      })
+    expect(invalidCreate.status).toBe(400)
+
+    const invalidUpdate = await request(app)
+      .put(`/api/admin/projects/${id}`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({ imageUrls: tooManyImages })
+    expect(invalidUpdate.status).toBe(400)
+
+    const clearImages = await request(app)
+      .put(`/api/admin/projects/${id}`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({ imageUrls: [] })
+    expect(clearImages.status).toBe(200)
+    expect(clearImages.body.imageUrls).toEqual([])
 
     const deleteRes = await request(app)
       .delete(`/api/admin/projects/${id}`)
@@ -403,6 +442,64 @@ describe('admin certification CRUD', () => {
 
     const afterDeleteRes = await request(app).get('/api/certifications')
     expect(afterDeleteRes.body.some((item: { id: number }) => item.id === id)).toBe(false)
+  })
+})
+
+describe('admin project image upload', () => {
+  it.each([
+    ['image/jpeg', '.jpg'],
+    ['image/png', '.png'],
+    ['image/webp', '.webp'],
+  ])('accepts %s and serves the uploaded file', async (contentType, extension) => {
+    const image = Buffer.from([0xff, 0xd8, 0xff, 0xd9])
+    const res = await request(app)
+      .post('/api/admin/project-images')
+      .set('Authorization', `Bearer ${token}`)
+      .attach('image', image, { filename: 'project-image', contentType })
+    if (typeof res.body.url === 'string') uploadedFiles.push(path.basename(res.body.url))
+    expect(res.status).toBe(201)
+    expect(res.body.url).toMatch(/^\/uploads\/project-/)
+    expect(path.extname(res.body.url)).toBe(extension)
+
+    const uploaded = await request(app).get(res.body.url)
+    expect(uploaded.status).toBe(200)
+    expect(uploaded.body).toEqual(image)
+  })
+
+  it('rejects upload without authentication', async () => {
+    const res = await request(app)
+      .post('/api/admin/project-images')
+      .attach('image', Buffer.from('image'), { filename: 'project.jpg', contentType: 'image/jpeg' })
+    expect(res.status).toBe(401)
+  })
+
+  it('rejects disallowed file types with the shared error message', async () => {
+    const res = await request(app)
+      .post('/api/admin/project-images')
+      .set('Authorization', `Bearer ${token}`)
+      .attach('image', Buffer.from('not an image'), { filename: 'project.txt', contentType: 'text/plain' })
+    expect(res.status).toBe(400)
+    expect(res.body.error).toBe('僅允許上傳 jpg、png 或 webp 格式的圖片。')
+  })
+
+  it('rejects files exceeding 5MB', async () => {
+    const res = await request(app)
+      .post('/api/admin/project-images')
+      .set('Authorization', `Bearer ${token}`)
+      .attach('image', Buffer.alloc(5 * 1024 * 1024 + 1), {
+        filename: 'project.jpg', contentType: 'image/jpeg',
+      })
+    expect(res.status).toBe(400)
+    expect(res.body.error).toBe('檔案上傳失敗：File too large')
+  })
+
+  it('rejects a request without a file', async () => {
+    const res = await request(app)
+      .post('/api/admin/project-images')
+      .set('Authorization', `Bearer ${token}`)
+      .field('description', 'no image')
+    expect(res.status).toBe(400)
+    expect(res.body.error).toBe('請選擇要上傳的圖片。')
   })
 })
 

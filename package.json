@@ -20,7 +20,9 @@
     "d1:admin:local": "wrangler d1 execute idv-web --local --file=backend/.generated/d1-admin.sql",
     "d1:seed:remote": "wrangler d1 execute idv-web --remote --file=backend/.generated/d1-seed.sql",
     "d1:admin:remote": "wrangler d1 execute idv-web --remote --file=backend/.generated/d1-admin.sql",
-    "d1:studio:local": "wrangler d1 execute idv-web --local --command=\"SELECT name FROM sqlite_master WHERE type='table'\""
+    "d1:studio:local": "wrangler d1 execute idv-web --local --command=\"SELECT name FROM sqlite_master WHERE type='table'\"",
+    "security:check": "node scripts/check-sensitive-data.mjs",
+    "security:test": "node --test scripts/check-sensitive-data.test.mjs"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^5",

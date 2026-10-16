@@ -87,6 +87,8 @@ model Project {
   link         String?
   githubUrl    String?
   imageUrl     String?
+  // 以 JSON 字串儲存 string[]，最多 3 張，順序即顯示順序；imageUrl 保留為相容欄位（第一張）。
+  imageUrls    String?
   featured     Boolean  @default(false)
   sortOrder    Int      @default(0)
 }
