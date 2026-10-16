@@ -176,17 +176,56 @@ describe('admin project CRUD', () => {
         highlightsZh: ['特色一'],
         highlightsEn: ['Feature one'],
         techStack: ['Node.js'],
+        imageUrls: ['/uploads/project-first.png', '/uploads/project-second.png'],
       })
     expect(createRes.status).toBe(201)
     expect(createRes.body.techStack).toEqual(['Node.js'])
+    expect(createRes.body.imageUrls).toEqual([
+      '/uploads/project-first.png', '/uploads/project-second.png',
+    ])
     const id = createRes.body.id as number
 
     const updateRes = await request(app)
       .put(`/api/admin/projects/${id}`)
       .set('Authorization', `Bearer ${token}`)
-      .send({ techStack: ['Node.js', 'TypeScript'] })
+      .send({
+        techStack: ['Node.js', 'TypeScript'],
+        imageUrls: ['/uploads/project-second.png', '/uploads/project-first.png'],
+      })
     expect(updateRes.status).toBe(200)
     expect(updateRes.body.techStack).toEqual(['Node.js', 'TypeScript'])
+    expect(updateRes.body.imageUrls).toEqual([
+      '/uploads/project-second.png', '/uploads/project-first.png',
+    ])
+
+    const publicRes = await request(app).get('/api/projects')
+    expect(publicRes.status).toBe(200)
+    expect(publicRes.body.find((project: { id: number }) => project.id === id).imageUrls)
+      .toEqual(updateRes.body.imageUrls)
+
+    const tooManyImages = Array.from({ length: 4 }, (_, i) => `/uploads/project-${i}.png`)
+    const invalidCreate = await request(app)
+      .post('/api/admin/projects')
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        nameZh: '圖片超量', nameEn: 'Too many images',
+        summaryZh: '摘要', summaryEn: 'Summary',
+        highlightsZh: [], highlightsEn: [], imageUrls: tooManyImages,
+      })
+    expect(invalidCreate.status).toBe(400)
+
+    const invalidUpdate = await request(app)
+      .put(`/api/admin/projects/${id}`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({ imageUrls: tooManyImages })
+    expect(invalidUpdate.status).toBe(400)
+
+    const clearImages = await request(app)
+      .put(`/api/admin/projects/${id}`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({ imageUrls: [] })
+    expect(clearImages.status).toBe(200)
+    expect(clearImages.body.imageUrls).toEqual([])
 
     const deleteRes = await request(app)
       .delete(`/api/admin/projects/${id}`)

@@ -112,7 +112,7 @@ async function main(): Promise<void> {
       [
         'id', 'nameZh', 'nameEn', 'categoryZh', 'categoryEn', 'subtitleZh', 'subtitleEn',
         'summaryZh', 'summaryEn', 'highlightsZh', 'highlightsEn', 'techStack',
-        'link', 'githubUrl', 'imageUrl', 'featured', 'sortOrder',
+        'link', 'githubUrl', 'imageUrl', 'imageUrls', 'featured', 'sortOrder',
       ],
       projects,
     ),
