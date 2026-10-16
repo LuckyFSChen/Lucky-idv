@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { resolveAssetUrl } from '@/api/client'
+import ProjectImageCarousel from '@/components/ProjectImageCarousel.vue'
 import { uiText } from '@/i18n/ui'
 import { useLocaleStore } from '@/stores/locale'
 import type { Project } from '@/types/api'
@@ -47,19 +47,12 @@ const projects = computed(() => props.projects)
           :key="project.id"
           class="projects__card"
         >
-          <div
-            class="projects__media"
-            aria-hidden="true"
-          >
-            <img
-              v-if="project.imageUrl"
-              :src="resolveAssetUrl(project.imageUrl) ?? undefined"
+          <div class="projects__media">
+            <ProjectImageCarousel
+              :images="project.imageUrls?.length ? project.imageUrls : (project.imageUrl ? [project.imageUrl] : [])"
               :alt="name(project)"
-            >
-            <span
-              v-else
-              class="projects__media-placeholder"
-            >{{ name(project).slice(0, 2).toUpperCase() }}</span>
+              :placeholder="name(project).slice(0, 2).toUpperCase()"
+            />
           </div>
 
           <div class="projects__body">
@@ -147,19 +140,6 @@ const projects = computed(() => props.projects)
   display: flex;
   align-items: center;
   justify-content: center;
-}
-
-.projects__media img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.projects__media-placeholder {
-  font-size: 2.5rem;
-  font-weight: 800;
-  color: var(--color-text-secondary);
-  opacity: 0.35;
 }
 
 .projects__body {
