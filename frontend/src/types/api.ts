@@ -67,6 +67,7 @@ export interface Project {
   link: string | null
   githubUrl: string | null
   imageUrl: string | null
+  imageUrls: string[]
   featured: boolean
   sortOrder: number
 }

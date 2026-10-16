@@ -40,6 +40,10 @@ export const uiText = {
       subtitle: '自主規劃與開發的產品專案。',
       techStack: '技術堆疊',
       viewProject: '查看專案',
+      previousImage: '上一張圖片',
+      nextImage: '下一張圖片',
+      imageNavigation: '第 {index} 張圖片',
+      imageAlt: '{name} — 第 {index} 張圖片',
     },
     selectedWork: {
       title: '精選工程作品',
@@ -133,6 +137,10 @@ export const uiText = {
       subtitle: 'Independently planned and developed products.',
       techStack: 'Tech Stack',
       viewProject: 'View Project',
+      previousImage: 'Previous image',
+      nextImage: 'Next image',
+      imageNavigation: 'Image {index}',
+      imageAlt: '{name} — image {index}',
     },
     selectedWork: {
       title: 'Selected Engineering Work',

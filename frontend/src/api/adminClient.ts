@@ -109,6 +109,7 @@ export interface ProjectInput {
   link?: string | null
   githubUrl?: string | null
   imageUrl?: string | null
+  imageUrls?: string[]
   featured?: boolean
   sortOrder?: number
 }
@@ -200,6 +201,15 @@ export const adminApi = {
 
   deleteExperience: (token: string | null, id: number) =>
     adminRequest<void>(`/api/admin/experience/${id}`, token, { method: 'DELETE' }),
+
+  uploadProjectImage: (token: string | null, file: File) => {
+    const formData = new FormData()
+    formData.append('image', file)
+    return adminRequest<{ url: string }>('/api/admin/project-images', token, {
+      method: 'POST',
+      body: formData,
+    })
+  },
 
   createProject: (token: string | null, data: ProjectInput) =>
     adminRequest<Project>('/api/admin/projects', token, { method: 'POST', body: JSON.stringify(data) }),
