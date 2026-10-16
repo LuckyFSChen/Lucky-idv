@@ -445,6 +445,64 @@ describe('admin certification CRUD', () => {
   })
 })
 
+describe('admin project image upload', () => {
+  it.each([
+    ['image/jpeg', '.jpg'],
+    ['image/png', '.png'],
+    ['image/webp', '.webp'],
+  ])('accepts %s and serves the uploaded file', async (contentType, extension) => {
+    const image = Buffer.from([0xff, 0xd8, 0xff, 0xd9])
+    const res = await request(app)
+      .post('/api/admin/project-images')
+      .set('Authorization', `Bearer ${token}`)
+      .attach('image', image, { filename: 'project-image', contentType })
+    if (typeof res.body.url === 'string') uploadedFiles.push(path.basename(res.body.url))
+    expect(res.status).toBe(201)
+    expect(res.body.url).toMatch(/^\/uploads\/project-/)
+    expect(path.extname(res.body.url)).toBe(extension)
+
+    const uploaded = await request(app).get(res.body.url)
+    expect(uploaded.status).toBe(200)
+    expect(uploaded.body).toEqual(image)
+  })
+
+  it('rejects upload without authentication', async () => {
+    const res = await request(app)
+      .post('/api/admin/project-images')
+      .attach('image', Buffer.from('image'), { filename: 'project.jpg', contentType: 'image/jpeg' })
+    expect(res.status).toBe(401)
+  })
+
+  it('rejects disallowed file types with the shared error message', async () => {
+    const res = await request(app)
+      .post('/api/admin/project-images')
+      .set('Authorization', `Bearer ${token}`)
+      .attach('image', Buffer.from('not an image'), { filename: 'project.txt', contentType: 'text/plain' })
+    expect(res.status).toBe(400)
+    expect(res.body.error).toBe('僅允許上傳 jpg、png 或 webp 格式的圖片。')
+  })
+
+  it('rejects files exceeding 5MB', async () => {
+    const res = await request(app)
+      .post('/api/admin/project-images')
+      .set('Authorization', `Bearer ${token}`)
+      .attach('image', Buffer.alloc(5 * 1024 * 1024 + 1), {
+        filename: 'project.jpg', contentType: 'image/jpeg',
+      })
+    expect(res.status).toBe(400)
+    expect(res.body.error).toBe('檔案上傳失敗：File too large')
+  })
+
+  it('rejects a request without a file', async () => {
+    const res = await request(app)
+      .post('/api/admin/project-images')
+      .set('Authorization', `Bearer ${token}`)
+      .field('description', 'no image')
+    expect(res.status).toBe(400)
+    expect(res.body.error).toBe('請選擇要上傳的圖片。')
+  })
+})
+
 describe('admin avatar upload', () => {
   it('rejects disallowed file types', async () => {
     const res = await request(app)
