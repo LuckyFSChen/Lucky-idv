@@ -1,5 +1,6 @@
 import { Router } from 'express'
 import { prisma } from '../db.js'
+import { serializeProject } from '../utils/adminData.js'
 import { parseArchitectureSteps, parseContactLinks, parseStringArray } from '../utils/json.js'
 
 export const publicRouter = Router()
@@ -37,14 +38,7 @@ publicRouter.get('/experience', async (_req, res) => {
 
 publicRouter.get('/projects', async (_req, res) => {
   const projects = await prisma.project.findMany({ orderBy: { sortOrder: 'asc' } })
-  res.json(
-    projects.map((project) => ({
-      ...project,
-      highlightsZh: parseStringArray(project.highlightsZh),
-      highlightsEn: parseStringArray(project.highlightsEn),
-      techStack: parseStringArray(project.techStack),
-    })),
-  )
+  res.json(projects.map(serializeProject))
 })
 
 publicRouter.get('/engineering-cases', async (_req, res) => {

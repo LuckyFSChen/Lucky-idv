@@ -37,6 +37,7 @@ describe('public read-only API', () => {
     expect(Array.isArray(res.body)).toBe(true)
     expect(res.body[0].nameZh).toBe('TaskFlow')
     expect(Array.isArray(res.body[0].techStack)).toBe(true)
+    expect(res.body[0].imageUrls).toEqual([])
     const names = res.body.map((project: { nameZh: string }) => project.nameZh)
     expect(names).toContain('DineFlow')
     expect(names).toContain('Lucky IDV')

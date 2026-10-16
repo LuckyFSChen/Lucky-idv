@@ -73,22 +73,24 @@ export function serializeExperience(experience: {
 }
 
 export function toProjectUpdateData(data: z.infer<typeof projectUpdateSchema>) {
-  const { highlightsZh, highlightsEn, techStack, ...rest } = data
+  const { highlightsZh, highlightsEn, techStack, imageUrls, ...rest } = data
   return {
     ...rest,
     ...(highlightsZh !== undefined ? { highlightsZh: JSON.stringify(highlightsZh) } : {}),
     ...(highlightsEn !== undefined ? { highlightsEn: JSON.stringify(highlightsEn) } : {}),
     ...(techStack !== undefined ? { techStack: JSON.stringify(techStack) } : {}),
+    ...(imageUrls !== undefined ? { imageUrls: JSON.stringify(imageUrls) } : {}),
   }
 }
 
 export function toProjectCreateData(data: z.infer<typeof projectCreateSchema>) {
-  const { highlightsZh, highlightsEn, techStack, ...rest } = data
+  const { highlightsZh, highlightsEn, techStack, imageUrls, ...rest } = data
   return {
     ...rest,
     highlightsZh: JSON.stringify(highlightsZh),
     highlightsEn: JSON.stringify(highlightsEn),
     techStack: techStack !== undefined ? JSON.stringify(techStack) : null,
+    imageUrls: imageUrls !== undefined ? JSON.stringify(imageUrls) : null,
   }
 }
 
@@ -96,6 +98,7 @@ export function serializeProject(project: {
   highlightsZh: string | null
   highlightsEn: string | null
   techStack: string | null
+  imageUrls: string | null
   [key: string]: unknown
 }) {
   return {
@@ -103,6 +106,7 @@ export function serializeProject(project: {
     highlightsZh: parseStringArray(project.highlightsZh),
     highlightsEn: parseStringArray(project.highlightsEn),
     techStack: parseStringArray(project.techStack),
+    imageUrls: parseStringArray(project.imageUrls),
   }
 }
 

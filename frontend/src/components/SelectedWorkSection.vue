@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { resolveAssetUrl } from '@/api/client'
+import ProjectImageCarousel from '@/components/ProjectImageCarousel.vue'
 import { uiText } from '@/i18n/ui'
 import { useLocaleStore } from '@/stores/locale'
 import type { Project } from '@/types/api'
@@ -48,19 +48,12 @@ const featuredProjects = computed(() => props.projects.filter((project) => proje
           :key="project.id"
           class="selected-work__card"
         >
-          <div
-            class="selected-work__media"
-            aria-hidden="true"
-          >
-            <img
-              v-if="project.imageUrl"
-              :src="resolveAssetUrl(project.imageUrl) ?? undefined"
+          <div class="selected-work__media">
+            <ProjectImageCarousel
+              :images="project.imageUrls?.length ? project.imageUrls : (project.imageUrl ? [project.imageUrl] : [])"
               :alt="name(project)"
-            >
-            <span
-              v-else
-              class="selected-work__media-placeholder"
-            >{{ name(project).slice(0, 2).toUpperCase() }}</span>
+              :placeholder="name(project).slice(0, 2).toUpperCase()"
+            />
           </div>
 
           <div class="selected-work__body">
@@ -129,19 +122,6 @@ const featuredProjects = computed(() => props.projects.filter((project) => proje
   display: flex;
   align-items: center;
   justify-content: center;
-}
-
-.selected-work__media img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.selected-work__media-placeholder {
-  font-size: 2.5rem;
-  font-weight: 800;
-  color: var(--color-text-secondary);
-  opacity: 0.35;
 }
 
 .selected-work__body {

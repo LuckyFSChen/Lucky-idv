@@ -15,7 +15,7 @@
  *      ⚠️ 該 binding 的 period 只支援 10 或 60 秒，因此原本的
  *         「15 分鐘 10 次」在此變成「60 秒 10 次」。
  *
- *   4. POST /avatar 改寫入 R2（Workers 沒有檔案系統，multer + 磁碟路徑不適用）。
+ *   4. POST /avatar 與 /project-images 改寫入 R2（Workers 沒有檔案系統，multer + 磁碟路徑不適用）。
  *      驗證規則（允許的 MIME、大小上限、檔名產生方式）與 middleware/upload.ts 一致。
  *
  * 資料轉換、序列化與 zod schema 全部沿用 backend/src 下的同一份實作，
@@ -62,14 +62,14 @@ import { parseExpiresInSeconds, signAdminToken, verifyAdminToken } from '../lib/
 const ADMIN_PREFIX = '/api/admin/'
 
 /** 與 backend/src/middleware/upload.ts 的 ALLOWED_MIME_TYPES 保持一致。 */
-const ALLOWED_AVATAR_TYPES: Record<string, string> = {
+const ALLOWED_IMAGE_TYPES: Record<string, string> = {
   'image/jpeg': '.jpg',
   'image/png': '.png',
   'image/webp': '.webp',
 }
 
 /** 與 Express 端 UPLOAD_MAX_SIZE_MB 的預設值一致。 */
-const AVATAR_MAX_SIZE_MB = 5
+const IMAGE_MAX_SIZE_MB = 5
 
 export function isAdminApiPath(pathname: string): boolean {
   return pathname === '/api/admin' || pathname.startsWith(ADMIN_PREFIX)
@@ -301,12 +301,62 @@ async function handleProfileUpdate(request: Request, prisma: PrismaClient): Prom
   return json({ ...profile, contactLinks: parseContactLinks(profile.contactLinks) })
 }
 
-/**
- * POST /api/admin/avatar —— multipart/form-data，欄位名 avatar。
- *
- * 與 Express 版的差異：檔案寫入 R2 而非本機磁碟。回傳的 avatarUrl 仍是
- * `/uploads/<key>`，因此前端的 resolveAssetUrl() 完全不需要改動。
- */
+function validateImage(file: File): Response | null {
+  const extension = ALLOWED_IMAGE_TYPES[file.type]
+  if (!extension) {
+    return jsonError('僅允許上傳 jpg、png 或 webp 格式的圖片。', 400)
+  }
+
+  if (file.size > IMAGE_MAX_SIZE_MB * 1024 * 1024) {
+    return jsonError(`檔案大小不得超過 ${IMAGE_MAX_SIZE_MB} MB。`, 400)
+  }
+
+  return null
+}
+
+/** 沿用 Express 規則，避免引入 upload.ts 的 Node / multer 依賴。 */
+async function storeImage(env: Env, file: File, prefix: 'avatar' | 'project'): Promise<string | Response> {
+  if (!env.UPLOADS) {
+    return jsonError('尚未設定 R2 儲存（UPLOADS binding），無法上傳圖片。', 501)
+  }
+
+  const invalid = validateImage(file)
+  if (invalid) return invalid
+  const random = Array.from(crypto.getRandomValues(new Uint8Array(6)))
+    .map((byte) => byte.toString(16).padStart(2, '0'))
+    .join('')
+  const key = `${prefix}-${Date.now()}-${random}${ALLOWED_IMAGE_TYPES[file.type]}`
+
+  await env.UPLOADS.put(key, await file.arrayBuffer(), {
+    httpMetadata: { contentType: file.type },
+  })
+
+  return key
+}
+
+async function handleProjectImageUpload(request: Request, env: Env): Promise<Response> {
+  if (!env.UPLOADS) {
+    return jsonError('尚未設定 R2 儲存（UPLOADS binding），無法上傳圖片。', 501)
+  }
+
+  let form: FormData
+  try {
+    form = await request.formData()
+  } catch {
+    return jsonError('檔案上傳失敗：請以 multipart/form-data 送出。', 400)
+  }
+
+  const file: unknown = form.get('image')
+  if (typeof file !== 'object' || !(file instanceof File)) {
+    return jsonError('請選擇要上傳的圖片。', 400)
+  }
+
+  const key = await storeImage(env, file, 'project')
+  if (key instanceof Response) return key
+  return json({ url: `/uploads/${key}` }, 201)
+}
+
+/** POST /api/admin/avatar：欄位 avatar，R2 網址維持 /uploads/<key>。 */
 async function handleAvatarUpload(request: Request, env: Env, prisma: PrismaClient): Promise<Response> {
   if (!env.UPLOADS) {
     return jsonError('尚未設定 R2 儲存（UPLOADS binding），無法上傳頭像。', 501)
@@ -319,19 +369,13 @@ async function handleAvatarUpload(request: Request, env: Env, prisma: PrismaClie
     return jsonError('檔案上傳失敗：請以 multipart/form-data 送出。', 400)
   }
 
-  const file = form.get('avatar')
-  if (!(file instanceof File)) {
+  const file: unknown = form.get('avatar')
+  if (typeof file !== 'object' || !(file instanceof File)) {
     return jsonError('請選擇要上傳的圖片。', 400)
   }
 
-  const extension = ALLOWED_AVATAR_TYPES[file.type]
-  if (!extension) {
-    return jsonError('僅允許上傳 jpg、png 或 webp 格式的圖片。', 400)
-  }
-
-  if (file.size > AVATAR_MAX_SIZE_MB * 1024 * 1024) {
-    return jsonError(`檔案大小不得超過 ${AVATAR_MAX_SIZE_MB} MB。`, 400)
-  }
+  const invalid = validateImage(file)
+  if (invalid) return invalid
 
   // 先確認 Profile 存在再寫檔，避免留下沒有任何列引用的孤兒物件。
   const existing = await prisma.profile.findFirst({ orderBy: { id: 'asc' } })
@@ -339,14 +383,8 @@ async function handleAvatarUpload(request: Request, env: Env, prisma: PrismaClie
     return jsonError('尚未建立個人資料，請先建立個人資料。', 404)
   }
 
-  const random = Array.from(crypto.getRandomValues(new Uint8Array(6)))
-    .map((byte) => byte.toString(16).padStart(2, '0'))
-    .join('')
-  const key = `avatar-${Date.now()}-${random}${extension}`
-
-  await env.UPLOADS.put(key, await file.arrayBuffer(), {
-    httpMetadata: { contentType: file.type },
-  })
+  const key = await storeImage(env, file, 'avatar')
+  if (key instanceof Response) return key
 
   // ⚠️ 與 Express 版一致，不刪除舊檔。舊的頭像物件會留在 R2 成為孤兒；
   //    若日後要清理，應另外寫一支對帳腳本，而不是在這裡直接刪
@@ -454,6 +492,11 @@ export async function handleAdminApi(
   if (resourceName === 'avatar' && idSegment === undefined) {
     if (request.method !== 'POST') return jsonError('不支援的 HTTP method。', 405)
     return handleAvatarUpload(request, env, prisma)
+  }
+
+  if (resourceName === 'project-images' && idSegment === undefined) {
+    if (request.method !== 'POST') return jsonError('不支援的 HTTP method。', 405)
+    return handleProjectImageUpload(request, env)
   }
 
   const resource = resourceName ? CRUD_RESOURCES[resourceName] : undefined
